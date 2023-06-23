@@ -1,0 +1,2789 @@
+<template>
+   <div>
+   <div class="desktop_nav">
+      <section id="searchbar_section">
+         <div class="container">
+            <div class="row">
+               <div class="col-xl-2 col-lg-2 col-md-2">
+                  <div class="site-logo">
+                     <router-link v-if="site_info.header_logo" :to="{name: 'home'}"><img @error="imageLoadError" :src="baseurl+'/'+site_info.header_logo" alt=""></router-link>
+                     <router-link v-else :to="{name: 'home'}"><img @error="imageLoadError" src="/assets/images/logo.png" alt=""></router-link>
+                  </div>
+               </div>
+               <div class="col-xl-2 col-lg-2 col-md-3">
+                  <span v-if="site_info.header_offer_banner_status > 0">
+                     <div v-if="site_info.header_offer_banner_linktype == 'internal_url'">
+                           <router-link :to="site_info.header_offer_banner_link">
+                              <img class="sale_banner_gif" @error="imageLoadError" :src="baseurl+'/'+site_info.header_offer_banner_image" alt="img">
+                           </router-link>
+                     </div>
+                     <div v-else class="app-banner mt-1">
+                           <a target="_blank" :href="site_info.header_offer_banner_link">
+                              <img class="sale_banner_gif" @error="imageLoadError" :src="baseurl+'/'+site_info.header_offer_banner_image" alt="img">
+                           </a>
+                     </div>
+                  </span>
+               </div>
+               <div class="col-xl-4 col-lg-4 col-md-3">
+                  <form @submit.prevent="searchSubmit()">
+                     <div class="row searchbox">
+                        <div class="col-md-10">
+                           <input type="text" name="" @keyup.prevent="search_suggest()" class="searchContent" id="myInput" :placeholder="$t('Search')+'..'">
+                        </div>
+                        <div class="col-md-2">
+                           <button type="submit" class="searchboxbtn"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+                        </div>
+                     </div>
+                  </form>
+
+
+                  <div class="search_suggest_wrapper">
+                     <div v-if="suggetionProductstatus" class="suggest_cross">x </div>
+                     <div class="row">
+                        <div class="product_serach_section" v-if="suggetionProductstatus" >
+                           <div class="product_search_title">
+                              Products
+                           </div>
+                           <div class="col-md-12" v-for="(data, index) in suggetionProduct.products" :key="index">
+                              <router-link :to="{ name: 'product', params: {slug: data.slug } }">
+                                 <div class="media search_suggest">
+                                    <div class="media-left">
+                                       <img @error="imageLoadError" v-if="data.default_image" :src="baseurl+'/'+data.default_image" alt="">
+                                       <img @error="imageLoadError" v-else :src="baseurl+'/media/notfound.png'" alt="">
+                                    </div>
+                                    <div class="media-body">
+                                       <b class="media-heading">{{ data.title }}</b> 
+                                       <div class="now-price">BDT {{  data.price_after_offer }} <span class="old-price-inline"><del v-if="parseInt(data.price_after_offer.replace(/,/g, ''))  < parseInt(data.price.replace(/,/g, ''))">BDT {{ data.price }}</del></span></div>
+                                    </div>
+                                 </div>
+                              </router-link>
+                           </div>
+                        </div>
+
+                        <div class="shop_serach_section" v-if="suggetionShops">
+                           <div class="product_search_title">
+                              Shops
+                           </div>
+                           <router-link v-for="(seller, index) in suggetionShops" :key="index" :to="{ name: 'shop', params: {slug: seller.slug } }">  <div class="shops_item"> {{ seller.name }} </div></router-link>
+                        </div>
+                        <div class="shop_serach_section" v-if="suggetionCategories">
+                           <div class="product_search_title">
+                              Categories
+                           </div>
+                           <router-link v-for="(category, index) in suggetionCategories" :key="index" :to="{name: 'category', params: {slug: category.slug } }">  <div class="shops_item"> {{ category.title }} </div></router-link>
+                        </div>
+                     </div>
+                  </div>
+
+
+
+               </div>
+               <div class="col-xl-4 col-lg-4 col-md-4 justify-content-end d-flex">
+                 <div class="user-box top_right_icon">
+                     <ul>
+                        <li class="comparenumberFull hover_element">
+                           <router-link :to="{name: 'compare-list'}" title="Go to compare list"> <i class="fa fa-retweet" aria-hidden="true"></i><span  v-if="wishlistVuex" class="comparenumber">  {{ compreVuex.total }} </span> </router-link>
+                        </li>
+                        <li class="comparenumberFull hover_element">
+                           <router-link :to="{name: 'wishlist'}" title="Go to wishlist"> <i class="fa fa-heart" aria-hidden="true"></i><span v-if="wishlistVuex" class="comparenumber">  {{ wishlistVuex.total }} </span> </router-link>
+                        </li>
+                     </ul>
+                  </div>
+
+                  <div class="media">
+                     <a :title="site_info.cnf_phone" :href="'tel:'+site_info.cnf_phone">
+                        <img src="/images/call_now.png" class="mr-3" alt=""/>
+                     </a>
+                     <div class="media-body ">
+                        <p class="text-secondary m-0 hotline">HOTLINE</p>
+                        <a v-if="site_info.cnf_phone1" class="text-dark hedaer_phone" :href="'tel:'+site_info.cnf_phone1"> <b>{{ site_info.cnf_phone1 }}</b></a><br>
+                        <a v-if="site_info.cnf_phone2" class="text-dark hedaer_phone" :href="'tel:'+site_info.cnf_phone2"> <b>{{ site_info.cnf_phone2 }}</b></a>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+      <section id="navbar_section">
+         <div class="container">
+            <div class="row">
+               <div class="col-md-12">
+                  <div class="row">
+                     <div class="col-md-7 col-lg-7">
+                        <div class="main-menu main-menu-first">
+                           <ul>
+                              <li class="desktop-bars-btn">
+                                 <a href="javascript:void(0)"> {{ $t('Categories') }} </a>
+                              </li>
+                              <li v-for="(navbar, index) in navbars" :key="index" v-if="navbar.status == '1'">
+                                 <span v-if="navbar.link_type == 'Internal'" >
+                                    <router-link :to="{name: navbar.link}">  {{ navbar.title }} </router-link>
+                                 </span>
+                                 <span v-else>
+                                    <a target="_blank" :href="navbar.link">{{ navbar.title }}</a>
+                                 </span>
+                              </li>
+                           </ul>
+                        </div>
+                     </div>
+                     <div class="col-md-5 col-lg-5">
+                        <div class="user-box">
+                           <ul v-if="logged_in_user" >
+                              <li class="language_li">
+                                 <div class="switch-button">
+                                    <ul>
+                                       <li> {{ $t('En') }}  </li>
+                                       <li class="align-middle">  
+                                          <label class="switch">
+                                          <input type="checkbox" id="mycheckbox" class="lang_selector" value="1" v-model="lang" @change.prevent="changeLanguage()">
+                                          <span class="slider round"></span>
+                                          </label>
+                                       </li>
+                                       <li> {{ $t('Bn') }} </li>
+                                    </ul>
+                                 </div>
+                              </li>
+                              <li class="notificationfull hover_element">
+                                 <i class="fa fa-bell" aria-hidden="true">
+                                 <span v-if="notificationsData.notification_total > 0" class="user-notification">{{ notificationsData.notification_total }}</span></i>
+                                 <div class="notification-dropdwon-parent">
+                                    <h4>{{ $t('Notifications') }} </h4>
+                                    <hr>
+                                    <div class="notification-dropdwon-child" id="notification_ul">
+                                       <ul v-if="notificationsData.notification_total > 0" >
+                                          <li v-for="(notify, index) in notificationsData.notification" :key="index" @click.prevent="viewNotification(notify.id,notify.decoded_description)">
+                                             <span>{{index+1}}</span> 
+                                             <p :title="notify.decoded_description.message">{{  notify.decoded_description.message }}</p>
+                                          </li>
+                                       </ul>
+                                       <ul v-else class="nothing_notify">
+                                          <li> <small> {{ $t('No notification found') }}</small> </li>
+                                       </ul>
+                                    </div>
+                                 </div>
+                              </li>
+                              <li class="userfull hover_element pr-3"> <i class="fa fa-user" aria-hidden="true"></i> <span>{{logged_in_user.name}}</span></li>
+                           </ul>
+                           <ul v-else>
+                                 <li class="language_li">
+                                    <div class="switch-button">
+                                       <ul>
+                                          <li> {{ $t('En') }}  </li>
+                                          <li class="align-middle">  
+                                             <label class="switch">
+                                             <input type="checkbox" id="mycheckbox" class="lang_selector" value="1" v-model="lang" @change.prevent="changeLanguage()">
+                                             <span class="slider round"></span>
+                                             </label>
+                                          </li>
+                                          <li> {{ $t('Bn') }} </li>
+                                       </ul>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <router-link class="nav_login" :to="{name: 'login'}">  <i class="fa fa-sign-in" aria-hidden="true"></i> <span> {{ $t('Login')+'/'+$t('Register') }}</span> </router-link>
+                                 </li>
+                           </ul>
+                        </div>
+                        <div v-if="logged_in_user" class="user-account">
+                         
+                         
+                         
+                           <ul v-if="logged_in_user.user_type == 1">
+                              <li>
+                                 <router-link :to="{name: 'myaccount'}">  <i class="fa fa-id-card-o" aria-hidden="true"></i> <span>{{ $t('My Account') }}</span> </router-link>
+                              </li>
+                              <li>
+                                 <router-link :to="{name: 'myorder'}"> <i class="fa fa-cart-arrow-down" aria-hidden="true"></i> <span> {{ $t('My Orders') }}</span> </router-link>
+                              </li>
+                              <li>
+                                 <router-link :to="{name: 'myaddress'}">  <i class="fa fa-truck" aria-hidden="true"></i> <span> {{ $t('My Shipping Information') }}</span> </router-link>
+                              </li>
+                              <li>
+                                 <router-link :to="{name: 'myavouchers'}">  <i class="fa fa-gift" aria-hidden="true"></i> <span>  {{ $t('Voucher') }} </span> </router-link>
+                              </li>
+                              <li>
+                                 <router-link :to="{name: 'changepassword'}"> <i class="fa fa-unlock-alt" aria-hidden="true"></i> <span>{{ $t('Change Password') }}</span> </router-link>
+                              </li>
+                              <li @click.prevent="Headerlogout()"> <a href="#"> <i class="fa fa-power-off" aria-hidden="true"></i> <span>{{ $t('Logout') }}</span> </a> </li>
+                           </ul>
+
+                           <ul v-else>
+                              <li>
+                                 <router-link :to="{name: 'myaccount'}">  <i class="fa fa-id-card-o" aria-hidden="true"></i> <span>{{ $t('My Account') }}</span> </router-link>
+                              </li>
+                              <li> 
+                                 <router-link :to="{name: 'productquatation'}"> <i class="fa fa-book" aria-hidden="true"></i> <span>{{ $t('Product Quotation') }}</span> </router-link>
+                              </li>
+                              <li>
+                                 <router-link :to="{name: 'changepassword'}"> <i class="fa fa-unlock-alt" aria-hidden="true"></i> <span>{{ $t('Change Password') }}</span> </router-link>
+                              </li>
+                              <li @click.prevent="Headerlogout()"> <a href="#"> <i class="fa fa-power-off" aria-hidden="true"></i> <span>{{ $t('Logout') }}</span> </a> </li>
+                           </ul>
+
+
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+   </div>
+   <a style="display:none;" class="btn btn-primary" data-toggle="modal" data-target="#loginModal" id="popupLoignModal"></a>
+   <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+     
+   
+     <div v-if="site_info.social_login == 1" class="modal-dialog modal-dialog-centered login_popup"   role="document">
+         <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="row">
+               <div class="col-md-6 pr-0">
+                  <div class="modal-body">
+                     <div class="register-form popup_register_form">
+                        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                              <li data-radiovalue="501" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
+                                 <button style="width: 100%;" class="btn btn-primary active" id="pills-pass-tab" data-toggle="pill" data-target="#pills-password" type="button" role="tab" aria-controls="pills-password" aria-selected="true">{{$t('Password Login')}}</button>
+                              </li>
+                              <li data-radiovalue="500" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
+                                 <button style="width: 100%;" class="btn btn-dark" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button" role="tab" aria-controls="pills-otp" aria-selected="false">{{$t('OTP Login')}}</button>
+                              </li>
+                        </ul>
+                        <hr>
+                        <form  @submit.prevent="popupPasswordLogin()">
+                              <div class="tab-content" id="pills-tabContent">
+                                 <div class="tab-pane fade show active" id="pills-password" role="tabpanel" aria-labelledby="pills-pass-tab">
+                                    <div class="password_logins">
+                                          <div class="form-group">
+                                             <label for=""> {{ $t('Mobile Number / Email') }}</label>
+                                             <input type="text" name="phone" class="form-control phone" :placeholder="$t('Enter Mobile Number or Email')">
+                                          </div>
+                                          <div class="form-group">
+                                             <label for="">{{ $t('Password') }}</label>
+                                             <input type="password" name="password" class="form-control password"  :placeholder="$t('Password')+'..'">
+                                          </div>
+                                    </div>
+                                 </div>
+                                 <div class="tab-pane fade" id="pills-otp" role="tabpanel" aria-labelledby="pills-otp-tab">
+                                    <div class="otp_logins">
+                                          <div class="otp_before">
+                                             <div class="form-group">
+                                                <label for=""> {{ $t('Mobile Number')}} </label>
+                                                <input name="mobile_number" type="text" class="form-control mobile_number_login_page mobile_number" :placeholder="$t('Enter Mobile Number')"> 
+                                                <button type="button" @click.prevent="PopupGenerateOtp()" class="fa fa-lock btn btn-primary generate_otp_1 login_otp login_otp_popup" aria-hidden="true">{{ $t('Generate OTP') }}</button>
+                                             </div>
+                                             <div class="form-group popupOtp_login_page_group">
+                                                <label for="">{{ $t('OTP') }}</label>
+                                                <input type="text" name="otp"  class="form-control popupOtp_login"  :placeholder="$t('OTP')+'..'">
+                                             </div>
+                                          </div>
+                                    </div>
+                                 </div>
+                              </div>
+                              <div class="form-group">
+                                 <input type="submit" class="singin-with-google password_login password_login_popup" value="Sign in">
+                                 <div class="singin-with-google otp_login otp_login_popup" @click.prevent="PopupOTPSignIn()">Sign in</div>
+                              </div>
+                        </form>
+                     </div>
+
+                  </div>
+               </div>
+             
+               <div class="col-md-1 p-0 orLogin">
+                  <h5> <b>Or</b> <br> <small> {{ $t('Login With') }}</small> </h5>
+               </div>
+
+               <div  class="col-md-5 p-0">
+                  <div class="social_login">
+                     <ul>
+                        <li class="login_with_facebook"><a href="javascript:void(0)" @click="logInWithFacebook" ><i aria-hidden="true" class="fa fa-facebook"></i>  {{ $t('Login with Facebook') }}  </a></li>
+                        <li id="googleButtonDiv"  class="login_with_google login_with_google_in_popup">
+                           <a href="javascript:void(0)" @click="logInWithGoogleRedirect" ><i aria-hidden="true" class="fa fa-google"></i>{{ $t('Login with Google') }} </a>
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+           
+            </div>
+         </div>
+      </div>
+
+
+      <div v-else class="modal-dialog modal-dialog-centered"  role="document">
+         <div class="modal-content">
+            <div class="modal-header border-bottom-0">
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="row popup_register_form_row">
+               <div class="col-md-12 col-12">
+                  <div class="form-title text-center">
+                     <h5><b>{{ $t('Please login to continue') }}</b></h5>
+                  </div>
+               </div>
+
+
+                <div class="register-form popup_register_form">
+                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <li data-radiovalue="501" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
+                            <button style="width: 100%;" class="btn btn-primary active" id="pills-pass-tab" data-toggle="pill" data-target="#pills-password" type="button" role="tab" aria-controls="pills-password" aria-selected="true">{{$t('Password Login')}}</button>
+                        </li>
+                        <li data-radiovalue="500" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
+                            <button style="width: 100%;" class="btn btn-dark" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button" role="tab" aria-controls="pills-otp" aria-selected="false">{{$t('OTP Login')}}</button>
+                        </li>
+                    </ul>
+                    <hr>
+                    <form  @submit.prevent="popupPasswordLogin()">
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="pills-password" role="tabpanel" aria-labelledby="pills-pass-tab">
+                                <div class="password_logins">
+                                    <div class="form-group">
+                                        <label for=""> {{ $t('Mobile Number / Email') }}</label>
+                                        <input type="text" name="phone" class="form-control phone" :placeholder="$t('Enter Mobile Number or Email')">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="">{{ $t('Password') }}</label>
+                                        <input type="password" name="password" class="form-control password"  :placeholder="$t('Password')+'..'">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="pills-otp" role="tabpanel" aria-labelledby="pills-otp-tab">
+                                <div class="otp_logins">
+                                    <div class="otp_before">
+                                        <div class="form-group">
+                                            <label for=""> {{ $t('Mobile Number')}} </label>
+                                            <input name="mobile_number" type="text" class="form-control mobile_number_login_page mobile_number" :placeholder="$t('Enter Mobile Number')"> 
+                                            <button type="button" @click.prevent="PopupGenerateOtp()" class="fa fa-lock btn btn-primary generate_otp_1 login_otp login_otp_popup" aria-hidden="true">{{ $t('Generate OTP') }}</button>
+                                        </div>
+                                        <div class="form-group popupOtp_login_page_group">
+                                            <label for="">{{ $t('OTP') }}</label>
+                                            <input type="text" name="otp"  class="form-control popupOtp_login"  :placeholder="$t('OTP')+'..'">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" class="singin-with-google password_login password_login_popup" value="Sign in">
+                            <div class="singin-with-google otp_login otp_login_popup" @click.prevent="PopupOTPSignIn()">Sign in</div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+         </div>
+      </div>
+   </div>
+
+   <!--Mobile menu start-->
+   <div class="mobile_nav">
+      <div class="container">
+         <div class="row">
+   
+            <div class="mobile-categories">
+               <div class="categories-close">
+                  <i class="fa fa-times" aria-hidden="true"></i>
+               </div>
+               <div class="categories_text"> <b> {{ $t('Categories') }}</b></div>
+               <div id="mobile_menu">
+                  <div class="row hidden_in_mobile">
+                     <div class="col-6"><p class="text-left cat_tt">Categories</p></div>
+                     <div class="col-6"><p class="text-right cat_cc"> <i class="fa fa-close"></i> </p></div>
+                  </div>
+                  
+
+
+                  <ul class="mdn-accordion blue-accordion-theme"  id="layer_0">
+                     <li v-for="(category1, index) in categories" :key="index" class="sub-level" v-if="category1.categories.length > 0" >
+                        
+                        <input class="accordion-toggle" type="checkbox" :name ="'group-'+index" :id="'group-'+index">
+                        <router-link  class="close_mobile_nav accordion-title link_title" :to="{name: 'category', params: {slug: category1.slug } }">{{ category1.title }}</router-link>
+                        <label class="accordion-title link_level" :for="'group-'+index"> </label>
+                      
+
+
+                        <ul id="layer_1">
+                           <li v-for="category2 in category1.categories" :key="category2.id" v-if="category2.categories.length > 0" class="sub-level">
+                              <input class="accordion-toggle" type="checkbox" :name ="'sub-group-'+category2.id" :id="'sub-group-'+category2.id">
+                              <!-- <label class="accordion-title" :for="'sub-group-'+category2.id">{{ category2.title }}</label> -->
+
+                              <router-link  class="close_mobile_nav accordion-title link_title" :to="{name: 'category', params: {slug: category2.slug } }">{{ category2.title }}</router-link>
+                              <label class="accordion-title link_level" :for="'sub-group-'+category2.id"> </label>
+
+
+                              <ul id="layer_2">
+                                 <li v-for="category3 in category2.categories" :key="category3.id" v-if="category3.categories.length > 0" class="sub-level">
+                                    <input class="accordion-toggle" type="checkbox" :name ="'sub-group-level-'+category3.id" :id="'sub-group-level-'+category3.id">
+                                    <!-- <label class="accordion-title" :for="'sub-group-level-'+category3.id">{{ category3.title }}</label> -->
+                                    <router-link  class="close_mobile_nav accordion-title link_title" :to="{name: 'category', params: {slug: category3.slug } }">{{ category3.title }}</router-link>
+                                    <label class="accordion-title link_level" :for="'sub-group-level-'+category3.id"> </label>
+
+
+                                    <ul id="layer_3">
+                                       <li v-for="category4 in category3.categories" :key="category4.id" >
+                                          <router-link :to="{name: 'category', params: {slug: category4.slug } }">{{ category4.title }}</router-link>
+                                       </li>
+                                    </ul>
+                                 </li>
+                                 <li v-else>
+                                    <router-link class="close_mobile_nav width100" :to="{name: 'category', params: {slug: category3.slug } }" >{{ category3.title }} </router-link>
+                                 </li>
+                              </ul>
+                           </li>
+                           <li v-else>
+                              <router-link class="close_mobile_nav width100" :to="{name: 'category', params: {slug: category2.slug } }" >{{ category2.title }} </router-link>
+                           </li>
+                        </ul>
+                     </li>
+                     <li v-else>
+                        <router-link class="close_mobile_nav width100" :to="{name: 'category', params: {slug: category1.slug } }">{{ category1.title }}</router-link>
+                     </li>
+                  </ul>
+               </div>
+            </div>
+
+
+            <div class="mobile-main-menu">
+               <div class="main-menu-close">
+                  <i class="fa fa-times" aria-hidden="true"></i>
+               </div>
+               <ul>
+                  <li class="main-menu-text"> <b> {{ $t('Main menu') }}</b></li>
+                  <li class="padding_top">
+                     <router-link :to="{name: 'sellers'}"> {{ $t('Brands') }} </router-link>
+                  </li>
+                  <li>
+                     <router-link :to="{name: 'products'}"> {{ $t('Products') }} </router-link>
+                  </li>
+        
+                  <!-- 
+                  <li v-if="offer_title.regular_offer">
+                     <router-link :to="{name: 'offer'}"> {{ offer_title.regular_offer }} </router-link>
+                  </li>
+                  <li v-if="offer_title.promotional_offer">
+                     <router-link :to="{name: 'offerpromotional'}" class="cyclone_offer"> {{ offer_title.promotional_offer }} </router-link>
+                  </li>
+                  <li>
+                     <router-link :to="{name: 'voucher'}">  {{ $t('Voucher') }} </router-link>
+                  </li>
+                   -->
+
+                  <li>
+                     <router-link :to="{name: 'flashdeals'}"> {{ $t('Flash Deals') }} </router-link>
+                  </li>
+
+                  <!-- <li>
+                     <router-link :to="{name: 'groceries'}"> {{ $t('Groceries') }} </router-link>
+                  </li> -->
+
+
+                  <li style="background: #fd8618;padding: 16px 0px 1px 20px;color:#fff;">
+                        <p> 
+                           {{ $t('En') }}
+
+                           <label class="switch">
+                              <input type="checkbox" class="lang_selector" v-model="lang" @change.prevent="changeLanguage()">
+                              <span class="slider round"></span>
+                           </label>
+
+                              {{ $t('Bn') }}
+                        </p>
+
+                  </li>
+               </ul>
+            </div>
+
+            <div class="col-md-12 search_in">
+               <ul>
+                  <li class="width10">
+                     <div class="categories-bars-btn">
+                        <i class="fa fa-bars mt-2" aria-hidden="true"></i>
+                     </div>
+                  </li>
+                  
+                  <li class="width70">
+                     <form @submit.prevent="mobile_searh_searchSubmit()">
+                        <input type="text" class="mobile_search_input mobileSearchContent" @keyup.prevent="mobile_search_suggest()" :placeholder="$t('Search...')">
+                        <button class="mobile_search_button" @click="mobile_searh_searchSubmit()">
+                              <i class="fa fa-search" aria-hidden="true" ></i>
+                        </button>
+                        </form>
+
+
+                        <div class="mobile_search_suggest_wrapper">
+                           <div v-if="suggetionProductstatus" class="mobile_suggest_cross"> Close</div>
+                           <div class="row">
+                              <div class="product_serach_section" v-if="suggetionProductstatus" >
+                                 <div class="product_search_title">
+                                    Products
+                                 </div>
+                                 <div class="col-md-12" v-for="(data, index) in suggetionProduct.products" :key="index">
+                                    <router-link :to="{ name: 'product', params: {slug: data.slug } }">
+                                       <div class="media search_suggest mobile_search_suggest_media">
+                                          <div class="media-left">
+                                             <img @error="imageLoadError" v-if="data.default_image" :src="baseurl+'/'+data.default_image" alt="">
+                                             <img @error="imageLoadError" v-else :src="baseurl+'/media/notfound.png'" alt="">
+                                          </div>
+                                          <div class="media-body">
+                                             <b class="media-heading">{{ data.title }}</b> 
+                                             <div class="now-price">BDT {{  data.price_after_offer }} <span class="old-price-inline"><del v-if="parseInt(data.price_after_offer.replace(/,/g, ''))  < parseInt(data.price.replace(/,/g, ''))">BDT {{ data.price }}</del></span></div>
+                                          </div>
+                                       </div>
+                                    </router-link>
+                                 </div>
+                              </div>
+
+                              <div class="shop_serach_section" v-if="suggetionShops">
+                                 <div class="product_search_title">
+                                    Shops
+                                 </div>
+                                 <router-link v-for="(seller, index) in suggetionShops" :key="index" :to="{ name: 'shop', params: {slug: seller.slug } }">  <div class="shops_item"> {{ seller.name }} </div></router-link>
+                              </div>
+                              <div class="shop_serach_section" v-if="suggetionCategories">
+                                 <div class="product_search_title">
+                                    Categories
+                                 </div>
+                                 <router-link v-for="(category, index) in suggetionCategories" :key="index" :to="{name: 'category', params: {slug: category.slug } }">  <div class="shops_item"> {{ category.title }} </div></router-link>
+                              </div>
+                           </div>
+                        </div>
+
+
+
+
+                  </li>
+                  
+                  <li class="width10">
+                     <div class="text-right mobile-main-menu-btn pr-0">
+                        <i class="fa fa-th-large mt-2" aria-hidden="true"></i>
+                     </div>
+                  </li>
+               </ul>
+            </div> 
+         </div>
+      </div>
+   </div>
+   <!--Mobile menu end-->
+   <div class="left_cart_icon ui-widget-content">
+
+      <span v-if="cartData">
+         <span class="count_item" v-if="cartData.total_items > 0">  {{ cartData.total_items }}</span>
+         <span class="count_item" v-else>0</span>
+      </span>
+
+      <p> <img width="25" src="/images/cart_ico.png" alt="Cart icon"> </p>
+      <p class="mt-1" v-if="cartData.sub_total">BDT {{ cartData.sub_total }}</p>
+   </div>
+
+
+   <div class="left_cart">
+   <div class="cartfull">
+   <!-- <router-link :to="{name: 'cart'}"><i class="fa fa-shopping-cart" aria-hidden="true"> </i></router-link> -->
+   <span class="cart_close"> <i class="fa fa-times"></i></span>
+   <p class="cart_title">{{ $t('Shopping Cart') }}</p>
+   <div class="table-child">
+        <section v-if="cartData.sub_total > 0" id="cart-page">
+          <div class="container-fluid">
+            <div class="row cart-page-container">
+              <div class="col-12 col-sm-12 col-md-8 col-lg-9 pr-0">
+                <div class="cart-calculation">
+                  <table  class="table text-left cart_table" width="100%">
+                    <thead>
+                      <tr>
+                        <th width="95%"> {{ $t('Product Details') }}</th>
+                        <!-- <th width="30%">{{ $t('Product Name') }}</th> -->
+                        <!-- <th width="20%"> {{ $t('Price') }}</th>
+                        <th width="15%"> {{ $t('Quantity') }}</th> -->
+                        <!-- <th width="20%"> {{ $t('Total') }}</th> -->
+                        <th width="5%" style="text-align: right;"> {{ $t('Remove') }}</th>
+                      </tr>
+                    </thead>
+                  
+                  
+                    <tbody v-for="(cartgroup,index) in cartData.cart" :key="index">
+                      <tr class="group_header mb-3">
+                        <td colspan="7">
+                          <small>{{ $t('Shipped by') }} :  <b> <router-link class="text-dark" :to="{ name: 'shop', params: {slug: cartgroup.shop_info.shop_slug } }" >{{cartgroup.shop_info.shop_name}}</router-link></b></small>
+                        </td>
+                      </tr> 
+                      <tr v-for="(cart, index) in cartgroup.items" :key="index" class="cart_product_group">
+                        <td> 
+
+
+                           <div class="media">
+                              <div class="media-left product-cart-img"> 
+                                 <img @error="imageLoadError" :src="baseurl+'/'+cart.product.default_image" alt=""> 
+                              </div>
+                              <div class="media-body product-cart-details">
+                                 <router-link class="media-heading" :to="{ name: 'product', params: {slug: cart.product.slug } }"> {{ cart.product.title }} </router-link>
+                                 
+                                 <span  v-if="cart.product_type == 'variable'">
+                                    <br><small v-if="cart.variable_sku" class="mb-0 text-capitalize font-13"> <b>SKU:</b> {{cart.variable_sku}}</small>
+                                 </span>
+                                 <span v-else>
+                                    <br><small v-if="cart.product.sku" class="mb-0 text-capitalize font-13"> <b>SKU:</b> {{cart.product.sku}}</small>
+                                 </span>
+
+
+                                 <div class="left_side_cart_qty">
+                                    <div class="table-item">
+                                       <div class="full-quantity">
+                                          <button @click.prevent="updateQty(cart.row_id, -1)" class="cart_minus_btn"> <div class="crt cart-minus"> - </div> </button> 
+                                          <div class="crt cart-qty"> <input :id="'Product'+index" type="text" :data-catQty="cart.qty" class="cart-qty-input" readonly :value="cart.qty" :data-rowid="cart.row_id" :data-productid="cart.product_id" :data-userid="cart.user_id"> </div>
+                                          <button @click.prevent="updateQty(cart.row_id, 1)" class="cart_minus_btn"><div class="crt cart-plus" > + </div></button> 
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="table-item">BDT {{ cart.price }}   &nbsp;<span class="old-price"> <del v-if="cart.price_before_offer > cart.price">BDT {{ cart.price_before_offer }}</del> </span></div>
+                                 
+                                 <div class="table-item left_cart_varient_section">
+                                    <span  v-if="cart.product_type == 'variable'">
+                                       <p class="mb-0 text-capitalize font-13" v-for="(vOption,key) in cart.variable_options" :key="key"> <b>{{key}}</b> : {{vOption}}</p>
+                                    </span>
+                                    <span  v-if="cart.product_type == 'digital'">
+                                       <p v-if="cart.variable_options" class="mb-0 text-capitalize font-13"> <b>Contact Number</b> : {{cart.variable_options}}</p>
+                                    </span>
+
+                                    <span  v-if="cart.product_type == 'service'">
+                                       <p class="mb-0 text-capitalize font-13" v-for="(vOption,key) in cart.variable_options" :key="key"> <b>{{ key.replace('_',' ') }}</b> : {{vOption}}</p>
+                                    </span>
+
+                                 </div>
+                              </div>
+                           </div>
+
+
+
+                        </td>
+
+   
+                        
+                        <td style="text-align: right;"> 
+                          <div class="table-item product-remove addagain" :id="'cart_'+cart.row_id" @click.prevent="removeItem(cart.row_id)">
+                              <i class="fa fa-trash"></i>
+                          </div> 
+                        </td>
+
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="col-12 col-sm-12 col-md-4 col-lg-3 payment">
+                <div class="note">
+                  <h5 class="text-uppercase cart_summary_title">{{ $t('Order Summary') }}</h5>
+                </div>
+                <div class="payment-calculation">
+                  <ul>
+                    <li> <b>{{ $t('Sub Total') }}  </b>  <span v-if="sub_total"> BDT {{ sub_total }}</span> <span v-else> BDT {{ cartData.sub_total }} </span></li>
+                    <li> <b>{{ $t('Total Item') }}(s) </b>  <span>{{ cartData.total_items }}</span></li>
+                    <li> <b> {{ $t('Total Price') }}</b>  <span>BDT {{ sub_total }}  </span></li>
+                    
+                  </ul>
+                </div>
+
+                <span v-if="logged_in_user">
+                     <span v-if="logged_in_user.user_type == 2">
+                        <p class="text-right"><button  @click="requestForQuatation()" class="btn btn-primary site_color1">{{ $t('Request For Quatation') }}</button> </p>
+                     </span>
+                     <span v-else>
+                        <p class="text-right"><button  @click="showCheckoutSection()" class="btn btn-primary site_color1 show_checkout_section">{{ $t('Proceed To Checkout') }}</button> </p>
+                     </span>
+                </span>
+                 <span v-else>
+                  <p class="text-right"><button  @click="showCheckoutSection()" class="btn btn-primary site_color1 show_checkout_section">{{ $t('Proceed To Checkout') }}</button> </p>
+                 </span>
+               
+              
+               </div>
+            </div>
+          </div>
+        </section>
+
+        <section v-else id="cart-page-noitem">
+          <div class="container-fluid">
+            <div class="cart-page-container">
+                <p> <img @error="imageLoadError" src="/images/no-item-in-cart.gif" alt="">  </p>
+                  <h4 class="text-uppercase text-secondary"> {{ $t('No product in cart') }} ! </h4>
+            </div>
+         </div>
+      </section>
+   
+   <div id="checkout_section" v-if="loading" p-0>
+      <section v-if="cartData.sub_total > 0" id="cart-page">
+         <div class="container-fluid">
+            <div class="row mt-1">
+               <div class="back_to_cart"> <i class="fa fa-arrow-left" aria-hidden="true"></i> {{ $t('Back To Cart') }} </div> 
+                <span class="reload_calculation d-none">Reload Price</span>
+            </div>
+            <div class="row cart-page-container">
+               <div class="col-12 col-sm-12 col-md-7 col-lg-7 pr-0 pl-0">
+
+                  <div class="cart-calculation">
+                     <table  class="table text-left cart_table" width="100%">
+                        <thead>
+                           <tr>
+                              <th width="100%">{{ $t('Product Details') }}</th>
+                              <!-- <th width="25%"> {{ $t('Price') }}</th>
+                              <th class="text-center" width="10%"> {{ $t('Quantity') }}</th> -->
+                           </tr>
+                        </thead>
+                        <tbody v-for="(cartgroup, index) in cartData.cart" :key="index">
+                           <tr class="group_header mb-3">
+                              <td colspan="7">
+                                 <small>
+                                    {{ $t('Shipped by') }} : 
+                                    <b>
+                                       <router-link class="text-dark" :to="{ name: 'shop', params: {slug: cartgroup.shop_info.shop_slug } }" >{{cartgroup.shop_info.shop_name}}</router-link>
+                                    </b>
+                                 </small>
+                              </td>
+                           </tr>
+
+                           <!-- Checkout Items Start -->
+                           <tr v-for="(cart, index) in cartgroup.items" :key="index" class="cart_product_group">
+                              <td>
+                                 <div class="table-item">
+                                    <div class="media">
+                                       <img @error="imageLoadError"  class="mr-3 product-cart-img" :src="baseurl+'/'+cart.product.default_image" alt="">
+                                       <div class="media-body">
+                                          <h5 class="mt-0">
+                                             <router-link :to="{ name: 'product', params: {slug: cart.product.slug } }"> {{ cart.product.title }} </router-link>
+                                             
+                                             <span v-if="cart.product.is_grocery == 'grocery'" >
+                                                <span class="grocery_shipping_cost badge" :data-shipping-cost="cartData.grocery_shipping_cost">Grocery</span>
+                                             </span>
+
+                                          </h5>
+                                          
+                                          <div v-if="site_info.default_shipping_enable != '1'">
+                                             <div v-if="cart.product.is_grocery != 'grocery' && cart.product_type != 'digital' && cart.product_type != 'service' && logged_in_user_address != 0 && logged_in_user.default_address_id != null" class="select_shipping_options">
+                                                <span v-if="logged_in_user">
+
+                                                   <ul v-if="cart.shipping_options != 0 && cartData.pickpoint == 0" class="list-group list-group-horizontal">
+                                                      
+                                                      <li :data-product-id="cart.product_id"  data-shipping-method="free_shipping" :data-shipping-cost="0" :data-qty="cart.qty" v-if="cart.shipping_options.free_shipping == 'on'" class="list-group-item" :title="$t('Est. Arrival: Within 7 to 15 days')"> BDT 0 <br> {{ $t('Free Shipping') }} <br> <small>Est. Arrival: Within 7 to 15 days</small> </li>
+
+
+                                                      <li :data-product-id="cart.product_id" data-shipping-method="standard_shipping" :data-shipping-cost="cart.shipping_options.standard_shipping" :data-qty="cart.qty" class="list-group-item selected_shipping" :title="$t('Est. Arrival: Within 4 to 7 days')">BDT {{ cart.shipping_options.standard_shipping }}  <br>{{ $t('Standard Shipping') }} <br> <small>Est. Arrival: Within 4 to 7 days</small></li>
+
+
+                                                      <li :data-product-id="cart.product_id" data-shipping-method="express_shipping" :data-shipping-cost="cart.shipping_options.express_shipping" :data-qty="cart.qty" class="list-group-item" :title="$t('Est. Arrival: Within 1 to 3 days')">BDT {{ cart.shipping_options.express_shipping }} <br> {{ $t('Express Shipping') }} <br> <small>Est. Arrival: Within 1 to 3 days</small></li>
+                                                   </ul>
+
+                                                   <span v-if="cartData.pickpoint == 1" id="pickPointCost" :data-pickpoint-cost='cartData.shipping_cost' ></span>
+
+                                                </span>
+                                             </div>
+                                          </div>
+                                          
+
+                                          <span  v-if="cart.product_type == 'variable'">
+                                             <p class="badge badge-primary mr-2 mb-0" v-for="(vOption,key) in cart.variable_options" :key="key"> <b>{{key}}</b> : {{vOption}}</p>
+                                          </span>
+                                          <span  v-if="cart.product_type == 'digital'">
+                                             <p v-if="cart.variable_options" class="badge badge-primary mr-2 mb-0"> <b>{{ $t('Contact Number') }}</b> : {{cart.variable_options}}</p>
+                                          </span>
+                                          <div class="mb-0 text-capitalize font-13"> <b>Qty:</b> {{ cart.qty }}</div>
+                                          <div class="mb-0 text-capitalize font-13"><b>Price:</b> BDT {{ cart.price }}</div>
+                                          <span  v-if="cart.product_type == 'service'">
+                                             <p class="mb-0 text-capitalize font-13" v-for="(vOption,key) in cart.variable_options" :key="key"> <b>{{ key.replace('_',' ') }}</b> : {{vOption}}</p>
+                                          </span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </td>
+
+                           </tr>  <!-- Checkout Items Ends -->
+
+
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+               <div class="col-12 col-sm-12 col-md-5 col-lg-5 payment">
+                  <h5 class="text-uppercase cart_summary_title">{{ $t('Shipping information') }}</h5>
+
+
+                  
+
+                  <span v-if="selected_pickpoint">
+
+                        <span v-if="logged_in_user">
+                              <div v-if="selected_pickpoint != null" class="address_details">
+                                 
+                                 <ul>
+                                    <li>
+                                       <div class="row p-0">
+                                          <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
+                                          <div class="col-lg-10 p-0 pl-1"> <span>{{  selected_pickpoint.title+', ' +selected_pickpoint.division.title +', '+selected_pickpoint.district.title+', '+selected_pickpoint.upazila.title+', '+ selected_pickpoint.union.title+', '+selected_pickpoint.address }}</span> <span class="badge badge-danger">{{$t('Pickup Point')}}</span></div>
+                                          <div class="col-lg-1 pl-0 pt-1 pr-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
+                                       </div>
+                                    </li>
+                                    <li> <b><i class="fa fa-phone" aria-hidden="true"></i></b> <span>{{selected_pickpoint.phone}}</span></li>
+                                    <li v-if="selected_pickpoint.email"> <b><i class="fa fa-envelope-o" aria-hidden="true"></i></b> <span>{{selected_pickpoint.email}}</span></li>
+                                 </ul> 
+
+                              </div>
+                              <div v-else class="address_details_alt">
+                                 <div  class="row p-0">
+                                       <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
+                                       <div class="col-lg-10 p-0">
+                                          <p class="required_addtess" data-required-address="true">&nbsp;{{ $t('You need to add your shipping address') }}.</p>
+                                       </div>
+                                       <div class="col-lg-1  pl-0 pt-1 pr-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
+                           
+                                    </div> 
+                              </div>  
+                        </span>
+                           <div v-else  class="address_details_alt">
+                              <div v-if="logged_in_user" class="row p-0">
+                                 <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
+                                 <div v-if="logged_in_user.default_address_id == null" class="col-lg-10 p-0">
+                                    <p class="required_addtess" data-required-address="true">{{ $t('You need to select your default shipping address') }}.</p>
+                                 </div>
+                                 <div v-else class="col-lg-10 p-0">
+                                    <p class="required_addtess" data-required-address="true">{{ $t('You need to add your shipping address') }}.</p>
+                                 </div>
+                                 <div class="col-lg-1 pl-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
+                              </div>
+                              <div v-else><p class="required_addtess" data-required-login="true">{{ $t('You have to login first to add your shipping address') }}.</p></div>
+                           </div>
+
+                  </span>
+                  <span v-else>
+                  
+                              <span v-if="logged_in_user">
+                              <div v-if="logged_in_user_address != 0 && logged_in_user.default_address_id != null" class="address_details">
+                                 
+                                 <ul  v-for="(address,index) in logged_in_user_address" :key="index" v-if="logged_in_user.default_address_id == address.id" >
+                                    <li>
+                                       <div class="row p-0">
+                                          <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
+                                          <div class="col-lg-10 p-0 pl-1"> <span>{{  address.division.title +', '+address.district.title+', '+address.upazila.title+', '+ address.union.title+', '+address.shipping_address }}</span> </div>
+                                          <div class="col-lg-1 pl-0 pt-1 pr-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
+                                       </div>
+                                    </li>
+                                    <li> <b><i class="fa fa-phone" aria-hidden="true"></i></b> <span>{{address.shipping_phone}}</span></li>
+                                    <li v-if="address.shipping_email"> <b><i class="fa fa-envelope-o" aria-hidden="true"></i></b> <span>{{address.shipping_email}}</span> </li>
+                                 </ul>
+
+                              </div>
+                              <div v-else class="address_details_alt">
+                                 <div  class="row p-0">
+                                       <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
+                                       <div class="col-lg-10 p-0">
+                                          <p class="required_addtess" data-required-address="true">&nbsp;{{ $t('You need to add your default shipping address') }}.</p>
+                                       </div>
+                                       <div class="col-lg-1  pl-0 pt-1 pr-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
+                           
+                                    </div> 
+                              </div>  
+                           </span>
+                           <div v-else  class="address_details_alt">
+                              <div v-if="logged_in_user" class="row p-0">
+                                 <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
+                                 <div v-if="logged_in_user.default_address_id == null" class="col-lg-10 p-0">
+                                    <p class="required_addtess" data-required-address="true">{{ $t('You need to select your default shipping address') }}.</p>
+                                 </div>
+                                 <div v-else class="col-lg-10 p-0">
+                                    <p class="required_addtess" data-required-address="true">{{ $t('You need to add your shipping address') }}.</p>
+                                 </div>
+                                 <div class="col-lg-1 pl-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
+                              </div>
+                              <div v-else><p class="required_addtess" data-required-login="true">{{ $t('You have to login first to add your shipping address') }}.</p></div>
+                           </div>
+
+                  </span>
+
+
+
+
+
+                  <div class="note">
+                     <h5 class="text-uppercase cart_summary_title mt-2">  {{ $t('Write a note') }} </h5>
+                     <textarea type="text" v-model="note" class="form-control form_note" rows="3" :placeholder="$t('Write a note here')+'..'"></textarea>
+                     <div id="addCouponBlock">
+                        <h5 class="text-uppercase cart_summary_title mt-2">  {{ $t('Add Coupon') }} </h5>
+                        <div class="input-group mb-3">
+                           <input id="couponeCode" type="text" class="form-control" :placeholder="$t('Write a coupon code here')+'..'"  aria-describedby="basic-addon2">
+                           <div class="input-group-append">
+                              <span class="input-group-text d-block" @click.prevent="applyCouponCode()" id="basic-addon2"> {{ $t('Apply') }}</span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <div v-if="collectedVoucher.length" class="collect_voucher_modal">
+                     <h5 class="text-uppercase cart_summary_title">{{ $t('Collected Voucher') }}</h5>
+                     <div  v-for="(cv,index) in collectedVoucher" :key="index">
+                        <p><input type="hidden" name="collected_voucher" class="collected_voucher_radio" :value="cv.voucher_id" required> 
+                           <img @error="imageLoadError" style="width:100%" :src="baseurl+'/'+cv.voucher.banner" alt="">
+                        </p>
+                     </div>
+                  </div>
+                  <div class="voucher_button mt-3">
+                     <ul class="list-group list-group-horizontal">
+                        <li v-if="useableVouchers.length" style="width:100%" class="list-group-item">
+                           <a data-toggle="modal" data-target=".use_voucher_modal" href="javascript:void(0)">
+                              <p class=" mb-0"> {{ $t('Use Voucher') }}</p>
+                           </a>
+                        </li>
+                     </ul>
+                  </div>
+
+
+                  <div class="paymentmethod mt-3">
+                     <h5 class="text-uppercase cart_summary_title"> {{ $t('Payment Method') }}</h5>
+                     <ul class="list-group list-group-horizontal">
+                        <li data-payment-method="online_payment" class="list-group-item selected_payment online_payment" >
+                           <p class="text-center mb-0"> <img @error="imageLoadError" src="/images/ssl.png" alt=""> <br><b>{{ $t('Online Payment') }}</b></p>
+                        </li>
+                        <li data-payment-method="cash_on_delivery" class="list-group-item cash_on_delivery">
+                           <p class="text-center mb-0"> <img @error="imageLoadError" src="/images/cod1.png" alt=""> <br><b> {{ $t('Cash On Delivery') }}</b></p>
+                        </li>
+                     </ul>
+                  </div>
+
+                  <div class="payment-calculation mt-3 mb-4">
+                     <h5 class="text-uppercase cart_summary_title">{{ $t('Order Summary') }}</h5>
+                     <ul>
+                        <li :data-subtotal-amount="sub_total" class="data_sub_total"> <b> {{ $t('Sub Total') }} </b>  <span v-if="sub_total"> BDT&nbsp;{{ sub_total }}</span> <span v-else> BDT {{ cartData.sub_total }} </span></li>
+                       
+                        <li v-if="site_info.default_shipping_enable != '1'" :data-shipping-cost="cartData.shipping_cost" class="shipping_cost_li"> <b>{{ $t('Shipping Cost') }} (+)</b>  <span>BDT&nbsp;<span class="calculatedShipping">{{ cartData.shipping_cost }}</span></span></li>
+
+                        <li v-if="site_info.default_shipping_enable == '1'" :data-shipping-cost="cartData.shipping_cost" class="shipping_cost_li1"> <b>{{ $t('Shipping Cost') }} (+)</b>  <span>BDT&nbsp;<span class="calculatedShipping1">{{ cartData.shipping_cost }}</span></span></li>
+                        
+                        <li v-if="cartData.packaging_cost > 0" :data-packaging-cost-amount="cartData.packaging_cost" class="data_packaging_cost"> <b> {{ $t('Packaging Cost') }} (+)</b> <span> BDT&nbsp;{{ cartData.packaging_cost }}</span> </li>
+
+                        <li v-if="cartData.security_charge > 0" :data-security-charge-amount="cartData.security_charge" class="data_security_charge"> <b> {{ $t('Security Charge') }} (+)</b>  <span> BDT&nbsp;{{ cartData.security_charge }}</span> </li>
+
+                        <li v-if="cartData.vat > 0" :data-vat-amount="cartData.vat" class="data_vat"> <b> {{ $t('Vat') }} (+)</b>  <span> BDT&nbsp;{{ cartData.vat }}</span> </li>
+
+                        <li v-if="coupon_discount.status == 1 && Number(coupon_discount.amount) > 0" class="coupon_discount" :data-coupon-discount="Number(coupon_discount.amount)" > <b> {{ $t('Coupon Discount') }} (-)<br>  ({{coupon_discount.code}}) <a  @click.prevent="removeCoupon()" class="text-danger" href="javascript:void(0)"> {{ $t('Remove') }} </a></b>  <span>BDT {{ Number(coupon_discount.amount) }}</span></li>
+
+                        <li data-coupon-discount="0" v-else class="coupon_discount"  > <b>{{ $t('Coupon Discount') }} (-) </b>  <span>BDT 0</span></li>
+                        <li data-voucher-discount="0" class="show_voucher_discount"  ><b> {{ $t('Voucher Discount') }} (-)</b><span class="v_amount">BDT 0</span></li>
+
+                        <li> <b class="totaprice" id="totalPrice" :data-total-price="sub_total+cartData.shipping_cost" > {{ $t('Total') }} </b>  <span> BDT&nbsp;<span class="calculatedTotal"> {{ finalCalculatedTotal}}</span></span></li>
+                     </ul>
+
+                     <span v-if="site_info.partial_payment_enable == '1'">
+                     <div class="partial_payment mt-3">
+                        <h5 class="text-uppercase cart_summary_title"> {{ $t('Partial Payment') }} (BDT)</h5>
+                        <input id="partial_payment" type="text" class="form-control" :placeholder="$t('Amount you want to pay now')+'..'"  aria-describedby="basic-addon2">
+                     </div>
+                     </span>
+
+                  </div>
+
+                  <div class="procced-checkout mt-3">
+                     <ul>
+                        <li> <input type="checkbox" value="agree" class="agree"> 
+
+
+                        <!-- <small> </small> -->
+                        <small>
+                           <router-link v-if="static_pages.terms_of_use" :to="{ name: 'pages', params: {slug: static_pages.terms_of_use } }">{{ $t('I agree to the terms and Conditions') }} </router-link>
+                        </small>
+                        
+                        </li>
+                        <li>
+                          <button class="btn btn-secondary site_color2 back_to_cart back_to_cartbtn"> {{ $t('Cart') }} </button> 
+                          <button class="btn btn-primary site_color1 proceed_to_pay" @click.prevent="proceedToPay()"> {{ $t('Place Order') }} </button> 
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+      <section v-else  id="cart-page-shimmer">
+         <div class="container">
+            <div class="row">
+               <div v-if="cartData.sub_total == 0 || cartData.status == 0" class="col-md-12">
+                  <p> <img @error="imageLoadError" src="/images/no-item-in-cart.gif" alt="">  </p>
+                  <h4> {{ $t('No product in cart') }} ! </h4>
+                  <p>
+                     <router-link :to="{name:'products'}"> {{ $t('Continue shopping') }} </router-link>
+                  </p>
+               </div>
+               <div v-else class="col-md-12 simar_lodding">
+                  <div class="container">
+                     <div class="row cart-page-container">
+                        <div class="col-12 col-sm-12 col-md-8 col-lg-9 pr-0">
+                           <div class="row shoping-cart-text">
+                              <div class="col-12 col-sm-12 col-md-12">
+                                 <div class="shimmer">
+                                    <div class="h_3 w_10 ml_10 mt_5"></div>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="cart-calculation">
+                              <table  class="table text-left cart_table" width="100%">
+                                 <thead>
+                                    <tr>
+                                       <th width="5%">
+                                          <div class="shimmer">
+                                             <div class="h_2 w_5"></div>
+                                          </div>
+                                       </th>
+                                       <th width="60%"></th>
+                                       <th width="5%"> </th>
+                                       <th width="5%"> </th>
+                                       <th width="20%">
+                                          <div class="shimmer">
+                                             <div class="h_2 w_5"></div>
+                                          </div>
+                                       </th>
+                                       <th width="5%" style="text-align: right;">
+                                          <div class="shimmer">
+                                             <div class="h_2 w_5"></div>
+                                          </div>
+                                       </th>
+                                    </tr>
+                                 </thead>
+                                 <tbody>
+                                    <tr class="group_header mb-3">
+                                       <td colspan="7">
+                                          <small>
+                                             <div class="shimmer">
+                                                <div class="h_2 w_7"></div>
+                                             </div>
+                                          </small>
+                                       </td>
+                                    </tr>
+                                    <tr class="cart_product_group">
+                                       <td>
+                                          <div class="product-cart-img">
+                                             <div class="shimmer">
+                                                <div class="h_10 w_6 mr_5"></div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                       </td>
+                                       <td> </td>
+                                       <td> </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                    <tr class="group_header mb-3">
+                                       <td colspan="7">
+                                          <small>
+                                             <div class="shimmer">
+                                                <div class="h_2 w_7"></div>
+                                             </div>
+                                          </small>
+                                       </td>
+                                    </tr>
+                                    <tr class="cart_product_group">
+                                       <td>
+                                          <div class="product-cart-img">
+                                             <div class="shimmer">
+                                                <div class="h_10 w_6 mr_5"></div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                       </td>
+                                       <td> </td>
+                                       <td> </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                    <tr class="group_header mb-3">
+                                       <td colspan="7">
+                                          <small>
+                                             <div class="shimmer">
+                                                <div class="h_2 w_7"></div>
+                                             </div>
+                                          </small>
+                                       </td>
+                                    </tr>
+                                    <tr class="cart_product_group">
+                                       <td>
+                                          <div class="product-cart-img">
+                                             <div class="shimmer">
+                                                <div class="h_10 w_6 mr_5"></div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                       </td>
+                                       <td> </td>
+                                       <td> </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-4 col-lg-3 payment">
+                           <div class="note">
+                              <div class="shimmer">
+                                 <div class="h_2 w_48per mb_5"></div>
+                              </div>
+                           </div>
+                           <div class="payment-calculation">
+                              <ul>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_10 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_7 w_100per mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_100per mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_48per mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_7 w_48per f_left"></div>
+                                       <div class="h_7 w_48per f_right mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                              </ul>
+                           </div>
+                           <div class="procced-checkout">
+                              <ul>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_100per mb_10"></div>
+                                    </div>
+                                 </li>
+                              </ul>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+   </div>
+   <div v-else>
+      <section id="cart-page-shimmer">
+         <div class="container">
+            <div class="row">
+               <div v-if="cartData.sub_total == 0 || cartData.status == 0" class="col-md-12">
+                  <p> <img @error="imageLoadError" src="/images/no-item-in-cart.gif" alt="">  </p>
+                  <h4> {{ $t('No product in cart') }} ! </h4>
+                  <p>
+                     <router-link :to="{name:'products'}"> {{ $t('Continue shopping') }} </router-link>
+                  </p>
+               </div>
+               <div v-else class="col-md-12 simar_lodding">
+                  <div class="container">
+                     <div class="row cart-page-container">
+                        <div class="col-12 col-sm-12 col-md-8 col-lg-9 pr-0">
+                           <div class="row shoping-cart-text">
+                              <div class="col-12 col-sm-12 col-md-12">
+                                 <div class="shimmer">
+                                    <div class="h_3 w_10 ml_10 mt_5"></div>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="cart-calculation">
+                              <table  class="table text-left cart_table" width="100%">
+                                 <thead>
+                                    <tr>
+                                       <th width="5%">
+                                          <div class="shimmer">
+                                             <div class="h_2 w_5"></div>
+                                          </div>
+                                       </th>
+                                       <th width="60%"></th>
+                                       <th width="5%"> </th>
+                                       <th width="5%"> </th>
+                                       <th width="20%">
+                                          <div class="shimmer">
+                                             <div class="h_2 w_5"></div>
+                                          </div>
+                                       </th>
+                                       <th width="5%" style="text-align: right;">
+                                          <div class="shimmer">
+                                             <div class="h_2 w_5"></div>
+                                          </div>
+                                       </th>
+                                    </tr>
+                                 </thead>
+                                 <tbody>
+                                    <tr class="group_header mb-3">
+                                       <td colspan="7">
+                                          <small>
+                                             <div class="shimmer">
+                                                <div class="h_2 w_7"></div>
+                                             </div>
+                                          </small>
+                                       </td>
+                                    </tr>
+                                    <tr class="cart_product_group">
+                                       <td>
+                                          <div class="product-cart-img">
+                                             <div class="shimmer">
+                                                <div class="h_10 w_6 mr_5"></div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                       </td>
+                                       <td> </td>
+                                       <td> </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                    <tr class="group_header mb-3">
+                                       <td colspan="7">
+                                          <small>
+                                             <div class="shimmer">
+                                                <div class="h_2 w_7"></div>
+                                             </div>
+                                          </small>
+                                       </td>
+                                    </tr>
+                                    <tr class="cart_product_group">
+                                       <td>
+                                          <div class="product-cart-img">
+                                             <div class="shimmer">
+                                                <div class="h_10 w_6 mr_5"></div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                       </td>
+                                       <td> </td>
+                                       <td> </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                    <tr class="group_header mb-3">
+                                       <td colspan="7">
+                                          <small>
+                                             <div class="shimmer">
+                                                <div class="h_2 w_7"></div>
+                                             </div>
+                                          </small>
+                                       </td>
+                                    </tr>
+                                    <tr class="cart_product_group">
+                                       <td>
+                                          <div class="product-cart-img">
+                                             <div class="shimmer">
+                                                <div class="h_10 w_6 mr_5"></div>
+                                             </div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                          <div class="shimmer">
+                                             <div class="h_10 w_6 mr_5 f_left"></div>
+                                          </div>
+                                       </td>
+                                       <td> </td>
+                                       <td> </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                       <td>
+                                          <div class="shimmer">
+                                             <div class="h_3 w_5"></div>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-4 col-lg-3 payment">
+                           <div class="note">
+                              <div class="shimmer">
+                                 <div class="h_2 w_48per mb_5"></div>
+                              </div>
+                           </div>
+                           <div class="payment-calculation">
+                              <ul>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_10 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_7 w_100per mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_100per mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_48per mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_7 w_48per f_left"></div>
+                                       <div class="h_7 w_48per f_right mb_10"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_2 w_100per mb_5"></div>
+                                    </div>
+                                 </li>
+                              </ul>
+                           </div>
+                           <div class="procced-checkout">
+                              <ul>
+                                 <li>
+                                    <div class="shimmer">
+                                       <div class="h_3 w_100per mb_10"></div>
+                                    </div>
+                                 </li>
+                              </ul>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+   </div>
+
+   <!-- Address Modal start -->
+   <div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+   <div class="modal-content">
+   <div class="modal-header border-bottom-0">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+      </button>
+   </div>
+   <div class="modal-body">
+   <div class="form-title text-center">
+      <h5><b>{{ $t('Select Address from Address book') }}</b></h5>
+   </div>
+   <div class="d-flex flex-column text-center">
+      <ul class="nav nav-tabs">
+         <li class="btn btn-dark active"><a data-toggle="tab" href="#home">{{ $t('Address book') }}</a></li>
+         <li class="btn btn-dark"><a data-toggle="tab" href="#menu1"> <i class="fa fa-plus"></i> {{ $t('Add new address') }}</a></li>
+      </ul>
+      <div class="tab-content">
+         <div id="home" class="tab-pane fade in active">
+           
+            <table class="table table-hover">
+               <thead>
+                  <tr>
+                     <th scope="col"> {{ $t('Full Name') }} </th>
+                     <th scope="col"> {{ $t('Phone') }}</th>
+                     <th scope="col"> {{ $t('Address') }}</th>
+                     <th scope="col"> {{ $t('Defalut') }}</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr v-for="(address, index) in logged_in_user_address" :key="index" @click.prevent="change_address(address.id,0)">
+                     <td> {{ address.shipping_first_name }}  {{ address.shipping_last_name }}  </td>
+                     <td> {{ address.shipping_phone }} </td>
+                     <td>{{ address.division.title }}, {{ address.district.title }}, {{ address.upazila.title }}, {{ address.union.title }}</td>
+                     <td>
+                        <span v-if="logged_in_user.default_address_id == address.id">
+                           <div class="select_address" title="It is your default address"> </div>
+                        </span>
+                        <span v-else>
+                           <div class="unselect_address" title="Make this address default"> </div>
+                        </span>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+
+            <h5><b>{{ $t('Select address from our pickup point') }}</b></h5>
+
+            <table class="table table-hover">
+               <thead>
+                  <tr>
+                     <th scope="col"> {{ $t('Pick Point') }} </th>
+                     <th scope="col"> {{ $t('Phone') }}</th>
+                     <th scope="col"> {{ $t('Address') }}</th>
+                     <th scope="col"> {{ $t('Defalut') }}</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr v-for="(address, index) in pickpoint_address" :key="index" @click.prevent="change_address(address.id,1)">
+                     <td> {{ address.title }} </td>
+                     <td> {{ address.phone }} </td>
+                     <td>{{ address.division.title }}, {{ address.district.title }}, {{ address.upazila.title }}, {{ address.union.title }}</td>
+                     <td>
+                        <span v-if="logged_in_user.default_address_id == address.id">
+                           <div class="select_address" title="It is your default address"> </div>
+                        </span>
+                        <span v-else>
+                           <div class="unselect_address" title="Make this address default"> </div>
+                        </span>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+
+
+         </div>
+         <div id="menu1" class="tab-pane fade">
+            <div class="col-md-12">
+               <form @submit.prevent="addNewAddress()">
+                  <div class="options">
+                     <div class="row text-left">
+                        <div class="col-md-6">
+                           <div class="form-group">
+                              <label for=""> {{ $t('Full Name') }}<span style="color:#f00">*</span></label>
+                              <input type="text" class="form-control shipping_first_name0" :placeholder="$t('Full Name')+'..'" required>
+                              <div class="validation_error" v-if="errors.shipping_first_name" v-html="errors.shipping_first_name[0]" />
+                              </div>
+                           </div>
+                           <div class="col-md-6">
+                              <div class="form-group">
+                                 <label for="">  {{ $t('Phone') }} <span style="color:#f00">*</span></label>
+                                 <input type="text" class="form-control popup_phone0" :placeholder="$t('Phone')+'..'" required>
+                                 <div class="validation_error" v-if="errors.shipping_phone" v-html="errors.shipping_phone[0]" />
+                                 </div>
+                              </div>
+                              <div class="col-md-6">
+                                 <div class="form-group">
+                                    <label for="">  {{ $t('Division') }}<span style="color:#f00">*</span></label>
+                                    <select  @change.prevent="getDistrict()" name="division" id="division0" class="form-control" required>
+                                       <option disabled selected>--Select Division--</option>
+                                       <option value="68" >Dhaka</option>
+                                       <option value="36">Chattogram</option>
+                                       <option value="60">Rajshahi</option>
+                                       <option value="65">Khulna</option>
+                                       <option value="66">Barishal</option>
+                                       <option value="67">Sylhet</option>
+                                       <option value="69">Rangpur</option>
+                                       <option value="6175">Mymensingh</option>
+                                    </select>
+                                    <div class="validation_error" v-if="errors.shipping_division" v-html="errors.shipping_division[0]" />
+                                    </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <div class="form-group">
+                                       <label for=""> {{ $t('District') }} <span style="color:#f00">*</span></label>
+                                       <select  @change.prevent="getUpazila()" name="district" id="district0" class="form-control" required>
+                                          <option disabled selected>--Select District--</option>
+                                          <option data-removeable="true" v-for="(district,index) in districts" :key="index" :value="district.id">{{district.title}}</option>
+                                       </select>
+                                       <div class="validation_error" v-if="errors.shipping_district" v-html="errors.shipping_district[0]" />
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="row">
+                                    <div class="col-md-6">
+                                       <div class="form-group">
+                                          <label for="">{{ $t('Upazila / Thana') }} <span style="color:#f00">*</span></label>
+                                          <select  @change.prevent="getUnion()" name="upazila" id="upazila0" class="form-control" required>
+                                             <option disabled selected>--Select Upazila--</option>
+                                             <option data-removeable="true" v-for="(upazila,index) in upazilas" :key="index" :value="upazila.id">{{upazila.title}}</option>
+                                          </select>
+                                          <div class="validation_error" v-if="errors.shipping_thana" v-html="errors.shipping_thana[0]" />
+                                          </div>
+                                       </div>
+                                       <div class="col-md-6">
+                                          <div class="form-group">
+                                             <label for=""> {{ $t('Union / Area') }}<span style="color:#f00">*</span></label>
+                                             <select name="union" id="union0" class="form-control" required>
+                                                <option disabled selected>--Select Union--</option>
+                                                <option data-removeable="true" v-for="(union,index) in unions" :key="index" :value="union.id">{{union.title}}</option>
+                                             </select>
+                                             <div class="validation_error" v-if="errors.shipping_union" v-html="errors.shipping_union[0]" />
+                                             </div>
+                                          </div>
+                                          <div class="col-md-6">
+                                             <div class="form-group">
+                                                <label for="">{{ $t('Post code') }}<span style="color:#f00">*</span></label>
+                                                <input type="text" class="form-control popup_post_code0" :placeholder="$t('Post code')+'..'" required>
+                                                <div class="validation_error" v-if="errors.shipping_postcode" v-html="errors.shipping_postcode[0]" />
+                                                </div>
+                                             </div>
+                                             <div class="col-md-6">
+                                                <div class="form-group">
+                                                   <label for="">  {{ $t('Email') }}</label>
+                                                   <input type="text" class="form-control shipping_email0" :placeholder="$t('Email')+'..'" >
+                                                </div>
+                                             </div>
+                                             <div class="col-md-12">
+                                                <div class="form-group">
+                                                   <label for="">  {{ $t('Address') }} <span style="color:#f00">*</span></label>
+                                                   <textarea name="" id="" cols="30" rows="3" class="form-control shipping_address0" :placeholder="$t('Address')+'..'" required></textarea>
+                                                   <div class="validation_error" v-if="errors.shipping_address" v-html="errors.shipping_address[0]" />
+                                                   </div>
+                                                </div>
+                                             </div>
+                                             <p class="text-right"> <button type="submit" class="btn btn-dark"> {{ $t('Add new address') }}</button> </p>
+                                          </div>
+               </form>
+               </div>
+               </div>
+               </div>
+               </div>
+               </div>
+               </div>
+               </div>
+               </div>
+               <div v-if="useableVouchers.length" class="modal fade use_voucher_modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
+                  <div class="modal-dialog modal-lg">
+                     <div class="modal-content">
+                        <form @submit.prevent="checkUseableVoucher">
+                           <div class="modal-header border-bottom-0 abs_right ">
+                              <button type="button" class="close custom_close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                              </button>
+                           </div>
+                           <div class="modal-body">
+                              <h3 class="text-center"> {{ $t('Use Voucher') }} </h3>
+                              <p class="text-center"> {{ $t('Please select the voucher') }}</p>
+                              <div class="row">
+                                 <div  class="col-md-6" v-for="(cv,index) in useableVouchers" :key="index">
+                                    <p><input type="radio" name="useable_vouchers" class="useable_vouchers_radio" :data-voucher-discount="Number(cv.voucher.amount)" :value="cv.voucher_id" required> <img @error="imageLoadError" style="width:80%" :src="baseurl+'/'+cv.voucher.banner" alt=""></p>
+                                 </div>
+                              </div>
+                           </div>
+                           <div class="modal-footer border-top-0 ">
+                              <p class="text-right"><button type="submit" class="btn btn-dark"> {{ $t('Apply') }} </button></p>
+                           </div>
+                        </form>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+   <!-- Address Modal start -->
+
+   
+</template>
+<script>
+   import Vue from 'vue';
+   import Form from 'vform'
+   import axios from 'axios'
+   import {bus} from '../../app.js'
+import jquery from '../../../../../../public/assets/js/jquery.js';
+   
+   export default {
+     data(){
+       return{
+         navbars:'',
+         static_pages:'',
+         site_info:'',
+         userLoged:null,
+         categories:[],
+         cartItem:[],
+         cartLocalStorage:[],
+         baseurl:'',
+   	    carts:'',
+         sub_total:'',
+         compareList:'',
+         notification:'',
+         offer_title:'',
+         suggetionProduct:'',
+         suggetionShops:'',
+         suggetionCategories:'',
+        //  useableVouchers:'',
+        //  collectedVoucher:'',
+         StorageLanguade:'',
+         lang:'',
+         loading:false,
+   			agree:false,
+   			note:'',
+   			coupon_discount:{},
+   			cartCount:'',
+               addresses: {},
+               districts:{},
+               upazilas:{},
+               unions:{},
+               errors:{},
+               errors: [],
+               finalCalculatedTotal:0,
+               suggetionProductstatus:false,
+       }
+     },
+       
+     methods: {
+
+        load_static_pages(){
+            axios.get(this.$baseUrl+'/api/v1/get-static-pages').then(response => {
+                this.static_pages = response.data;
+            });
+        },
+
+
+          async logInWithFacebook() {
+               let that = this;
+   
+               await this.loadFacebookSDK(document, "script", "facebook-jssdk");
+               await this.initFacebook();
+               window.FB.login(function(response) {
+                   if(response.status == 'connected'){
+                       if (response.authResponse) {
+                           axios.post('https://api.kholabazaar.com/api/v1/social-login/facebook', response.authResponse).then(function(result){
+                               localStorage.setItem("token", result.data.token);
+                               that.$store.dispatch('loadedUser');
+                               that.$store.dispatch('loadedCart');
+                               that.$store.dispatch('loadedCompares');
+                               that.$store.dispatch('loadedNotifications');
+                               that.$router.push({name:'myaccount'});
+                           }).catch(function(e){
+                               swal ( "Oops" ,  e,  "error" );
+                           });
+   
+                       } else {
+                           swal ( "Oops" ,  'Sorry! Facebook does\'t provide authentication for this user.',  "error" );
+                       }
+                   }else{
+                       swal ( "Oops" ,  'Sorry! Facebook login service is currently unavailable. Please try again later!',  "error" );
+                   }
+               });
+               return false;
+           },
+           async initFacebook() {
+               window.fbAsyncInit = function() {
+                   window.FB.init({
+                   appId: "761135615074146",
+                   cookie: true,
+                   version: "v13.0"
+                   });
+               };
+           },
+           async loadFacebookSDK(d, s, id) {
+               var js,
+                   fjs = d.getElementsByTagName(s)[0];
+               if (d.getElementById(id)) {
+                   return;
+               }
+               js = d.createElement(s);
+               js.id = id;
+               js.src = "https://connect.facebook.net/en_US/sdk.js";
+               fjs.parentNode.insertBefore(js, fjs);
+           },
+   
+   
+           //Google Login
+           async logInWithGoogle() {
+                   let that = this;
+                   window.onload = function () {
+                       google.accounts.id.initialize({
+                           client_id: "397239095845-llm31ean6e5v33s3r8lhucahvk1amnko.apps.googleusercontent.com",
+                           callback: function handleCredentialResponse(response) {
+                                   if (response.credential) {
+                                       axios.post('https://api.kholabazaar.com/api/v1/social-login/google', {token:response.credential}).then(function(result){
+                                           localStorage.setItem("token", result.data.token);
+                                           that.$store.dispatch('loadedUser');
+                                           that.$store.dispatch('loadedCart');
+                                           that.$store.dispatch('loadedCompares');
+                                           that.$store.dispatch('loadedNotifications');
+                                           that.$router.push({name:'myaccount'});
+   
+                                       }).catch(function(e){
+                                           swal ( "Oops" ,  e,  "error" );
+                                       });
+   
+                                   } else {
+                                       swal ( "Oops" ,  'Sorry! Google does\'t provide authentication for this user.',  "error" );
+                                   }
+                           }
+                       });
+                       google.accounts.id.renderButton(
+                           document.getElementById("googleButtonDiv"),
+                           { theme: "filled_blue", size: "large",width:'320',text:'continue_with' }  // customization attributes
+                       );
+                       google.accounts.id.prompt(); // also display the One Tap dialog
+                   }
+               },
+           logInWithGoogleRedirect(){
+               this.$router.go(this.$router.currentRoute);
+           },
+   
+   
+   
+       load_promotional_offer_title(){
+           axios.get(this.$baseUrl+'/api/v1/get-promotion-title').then(response => {
+             this.offer_title = response.data;
+           });
+       },
+   
+       changeLanguage(){
+         if(this.lang){
+           localStorage.setItem("lang", 'bn');
+          // this.$i18n.locale = localStorage.getItem("lang");
+           this.$router.go();
+         }else{
+           localStorage.setItem("lang", 'en');
+           //this.$i18n.locale = localStorage.getItem("lang");
+           this.$router.go();
+         }
+       },
+   
+   		removeItem($row_id){
+            $('#cart_'+$row_id).html('<i class="fa fa-spinner fa-spin text-danger"></i>');
+            let session_key = localStorage.getItem("session_key");
+   			let token = localStorage.getItem("token");
+   			let axiosConfig = {
+   			  headers: {
+   				  'Content-Type': 'application/json;charset=UTF-8',
+   				  "Access-Control-Allow-Origin": "*",
+   				  'Authorization': 'Bearer '+token
+   			  }
+   			}
+   			let formData = new FormData();
+   			formData.append('row_id', $row_id);
+            formData.append('session_key', session_key);
+   
+   			axios.post(this.$baseUrl+'/api/v1/remove-cart-item',formData,axiosConfig).then(response =>{
+   				if(response.data.status == 1){
+    
+               this.$store.dispatch('loadedCart');
+               this.$store.dispatch('loadedVoucher');
+               this.$store.dispatch('loadedUsableVoucher');
+
+               $('#cart_'+$row_id).html('');
+               $('.addagain').html('<i class="fa fa-trash"></i>');
+               
+
+   				}else{
+   					swal ("Oops" ,response.data.message,  "error");
+   				}
+   			});
+   		},
+   
+       viewNotification(notification_id,notification){
+           let token = localStorage.getItem("token");
+           let axiosConfig = {
+             headers: {
+               'Content-Type': 'application/json;charset=UTF-8',
+               "Access-Control-Allow-Origin": "*",
+               'Authorization': 'Bearer '+token
+             }
+           }
+           axios.post(this.$baseUrl+'/api/v1/view-notification', {notification_id:notification_id}, axiosConfig).then(response => {
+             if(response.data.status == 1){
+               this.$store.dispatch('loadedNotifications');
+
+               if(notification.type == 'order'){
+                  this.$router.push({name: 'orderDetails', params: {id: notification.order_id } });
+               }else if(notification.type == 'deal'){
+                  this.$router.push({ name: 'flashdeal', params: {slug: notification.deal_slug } });
+               }else if(notification.type == 'cart'){
+                  jQuery('.left_cart_icon').trigger('click');
+               }
+
+               
+             }else{
+               swal("Sorry" , response.data.message,  "error" );
+             }
+           }); 
+       },
+      updateQty($rowId, $update){
+          let token = localStorage.getItem("token");
+          let session_key = localStorage.getItem("session_key");
+          let axiosConfig = {
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8',
+              "Access-Control-Allow-Origin": "*",
+              'Authorization': 'Bearer '+token
+            }
+          }
+          let formData = new FormData();
+          formData.append('rowId', $rowId);
+          formData.append('update', $update);
+          formData.append('session_key', session_key);
+          axios.post(this.$baseUrl+'/api/v1/update-qty', formData,axiosConfig).then(response =>{
+            if(response.data.status == '1'){
+              this.$store.dispatch('loadedCart');
+            }else{
+              swal ( "Oops", response.data.message, "error");
+            }
+
+          });
+      },
+
+
+		popupPasswordLogin(){
+            let session_key = localStorage.getItem("session_key");
+			let phone = $('.phone').val();
+			let password = $('.password').val();
+			let formData = new FormData();
+			formData.append('phone', phone);
+			formData.append('password', password);
+            formData.append('session_key', session_key);
+            
+			if(phone == '' || password == ''){
+				swal({
+				  title: "Phone number and password is required.",
+				  icon: "error",
+				  timer: 3000
+				});
+			}else{
+				axios.post(this.$baseUrl+'/api/v1/login', formData).then(response =>{
+                    if(response.data.status == 1){
+                        localStorage.setItem("token", response.data.token);
+                        this.$store.dispatch('loadedUser');
+                        this.$store.dispatch('loadedCart');
+                        this.$store.dispatch('loadedCompares');
+                        this.$store.dispatch('loadedNotifications');
+                         $('.close').trigger('click');
+                         console.log('dispatching in passwor login..!');
+                        this.$router.push({name:'myaccount'});
+                        this.initChat();
+    
+                    }else{
+                        swal({
+                            title: response.data.message,
+                            icon: "error",
+                            timer: 3000
+                        });
+                    }
+				}).catch(function(){
+                    swal({
+                        title: response.data.message,
+                        icon: "error",
+                        timer: 3000
+                    });
+				});
+			}
+		},
+
+      PopupOTPSignIn(){
+         let session_key = localStorage.getItem("session_key");
+         let formData = new FormData();
+         formData.append('mobile_number', $('.mobile_number').val());
+			formData.append('otp', $('.popupOtp_login').val());
+			formData.append('session_key', session_key);
+         
+			let token = localStorage.getItem("token");
+			let axiosConfig = {
+				headers: {
+					'Content-Type': 'application/json;charset=UTF-8',
+					"Access-Control-Allow-Origin": "*",
+					'Authorization': 'Bearer '+token
+				}
+			}
+			axios.post(this.$baseUrl+'/api/v1/otp-login',formData, axiosConfig).then(response => {
+
+				if(response.data.status == 1){
+                swal({
+                    title: response.data.message,
+                    icon: "success",
+                    timer: 3000
+                });
+               let user = response.data.customer;
+               this.$store.commit('SET_USER', user);
+               this.$store.commit('SET_AUTHENTICATED', true);
+               localStorage.setItem("auth", true);
+               localStorage.setItem("token", response.data.token);
+               localStorage.setItem("user_id", response.data.customer.id);
+               this.$store.dispatch('loadedUser');
+               this.$store.dispatch('loadedCart');
+               this.$store.dispatch('loadedCompares');
+               this.$store.dispatch('loadedNotifications');
+               console.log('dispatching in OTP login..!');
+                $('.close').trigger('click');
+               this.$router.push({name:'myaccount'});
+				}else{
+					swal ( "Oops", response.data.message, "error");
+				}
+			});
+        },
+
+        PopupGenerateOtp(){
+            let formData = new FormData();
+			   formData.append('mobile_number', $('.mobile_number').val());
+
+			let token = localStorage.getItem("token");
+			let axiosConfig = {
+				headers: {
+					'Content-Type': 'application/json;charset=UTF-8',
+					"Access-Control-Allow-Origin": "*",
+					'Authorization': 'Bearer '+token
+				}
+			}
+			axios.post(this.$baseUrl+'/api/v1/generate-otp',formData, axiosConfig).then(response => {
+
+				if(response.data.status == 1){
+					swal({
+						title: response.data.message,
+						icon: "success",
+						timer: 3000
+					});
+				}else{
+					swal ( "Oops", response.data.message, "error");
+				}
+			});
+		},
+
+
+
+      /*
+      generateOtp(){
+         let formData = new FormData();
+			formData.append('mobile_number', $('.mobile_number_forotp').val());
+
+			let token = localStorage.getItem("token");
+			let axiosConfig = {
+				headers: {
+					'Content-Type': 'application/json;charset=UTF-8',
+					"Access-Control-Allow-Origin": "*",
+					'Authorization': 'Bearer '+token
+				}
+			}
+			axios.post(this.$baseUrl+'/api/v1/generate-otp',formData, axiosConfig).then(response => {
+
+				if(response.data.status == 1){
+					swal({
+						title: response.data.message,
+						icon: "success",
+						timer: 3000
+					});
+
+               jQuery('.otp_before').hide();
+               jQuery('.otp_after').show();
+                    
+				}else{
+					swal ( "Oops", response.data.message, "error");
+				}
+			});
+		},
+      */
+
+      /*
+      popUpOtpLogin(){
+         let session_key = localStorage.getItem("session_key");
+         let formData = new FormData();
+			formData.append('mobile_number', $('.mobile_number_forotp').val());
+			formData.append('otp', $('#popupOtp').val());
+			formData.append('session_key', session_key);
+         
+			let token = localStorage.getItem("token");
+			let axiosConfig = {
+				headers: {
+					'Content-Type': 'application/json;charset=UTF-8',
+					"Access-Control-Allow-Origin": "*",
+					'Authorization': 'Bearer '+token
+				}
+			}
+			axios.post(this.$baseUrl+'/api/v1/otp-login',formData, axiosConfig).then(response => {
+
+				if(response.data.status == 1){
+					swal({
+						title: response.data.message,
+						icon: "success",
+						timer: 3000
+					});
+
+         
+               let user = response.data.customer;
+               this.$store.commit('SET_USER', user);
+               this.$store.commit('SET_AUTHENTICATED', true);
+               localStorage.setItem("auth", true);
+               localStorage.setItem("token", response.data.token);
+               localStorage.setItem("user_id", response.data.customer.id);
+               this.$store.dispatch('loadedUser');
+               this.$store.dispatch('loadedCart');
+               this.$store.dispatch('loadedCompares');
+               this.$store.dispatch('loadedNotifications');
+               $('.close').trigger('click');
+               jQuery('.otp_before').show();
+               jQuery('.otp_after').hide();
+
+       
+				}else{
+					swal ( "Oops", response.data.message, "error");
+				}
+			});
+
+      },
+   
+   	popUpLogin(){
+            let session_key = localStorage.getItem("session_key");
+            let phone = $('#popupphone').val();
+            let password  = $('#popuppassword').val();
+   			let formData = new FormData();
+   			formData.append('phone', phone);
+   			formData.append('password', password);
+   			formData.append('session_key', session_key);
+            session_key
+   			if(phone == '' && password == ''){
+   				swal({
+   				  title: "Phone number and password is required.",
+   				  icon: "error",
+   				  timer: 3000
+   				});
+   			}else{
+   		      axios.post(this.$baseUrl+'/api/v1/login', formData).then(response =>{
+                     let user = response.data.customer;
+                     this.$store.commit('SET_USER', user);
+                     this.$store.commit('SET_AUTHENTICATED', true);
+                     localStorage.setItem("auth", true);
+                     localStorage.setItem("token", response.data.token);
+                     localStorage.setItem("user_id", response.data.customer.id);
+                     this.$store.dispatch('loadedUser');
+                     this.$store.dispatch('loadedCart');
+                     this.$store.dispatch('loadedCompares');
+                     this.$store.dispatch('loadedNotifications');
+                     $('.close').trigger('click');
+   				}).catch(function(){
+   				  swal ( "Oops" ,  'Phone number or password does not match.',  "error" );
+   				});
+   				
+   			}
+         
+   		},
+      */
+       imageLoadError(event){
+             event.target.src = "/images/notfound.png";
+       },
+   
+      mobile_searh_searchSubmit(){
+         let content = $('.mobile_search_input').val();
+  
+         if(content){
+           this.$router.push({
+             name:'search',
+             params: { content: content}
+           });
+         }else{
+           this.$router.push({name:'products'});
+         }
+      },
+   
+      searchSubmit(){
+         let content = $('.searchContent').val();
+  
+         if(content){
+           this.$router.push({
+             name:'search',
+             params: { content: content}
+           });
+         }else{
+           this.$router.push({name:'products'});
+         }
+      },
+
+
+      Headerlogout(){
+         // const response = await axios.get('/api/Headerlogout');
+         this.$store.commit('SET_AUTHENTICATED', false);
+         this.$store.commit('LOADED_USER', []);
+         this.$store.commit('LOADED_CART', []);
+         this.$store.commit('LOADED_COMPARE', []);
+         this.$store.commit('LOADED_NOTIFICATIONS', []);
+         localStorage.removeItem("auth");
+         localStorage.removeItem("cart");
+         localStorage.removeItem("token");
+         localStorage.removeItem("userID");
+         localStorage.removeItem("userName");
+         this.$store.dispatch('loadedUser');
+         this.$store.dispatch('loadedCart');
+         this.$store.dispatch('loadedCompares');
+         this.$store.dispatch('loadedNotifications');
+         this.$store.dispatch('loadedVoucher');
+         this.$store.dispatch('loadedUsableVoucher');
+
+         localStorage.setItem("token", false);
+         this.$router.push({name:'login'});
+       },
+       load_categories(){
+         let axiosConfig = {
+           headers: {
+             'X-localization': localStorage.getItem('lang')
+           }
+         }
+         axios.get(this.$baseUrl+'/api/v1/categories', axiosConfig).then(response => {
+           this.categories = response.data;
+           this.next_page_url = response.next_page_url;
+         });
+       },
+       site_information(){
+         let axiosConfig = {
+           headers: {
+             'X-localization': localStorage.getItem('lang')
+           }
+         }
+         axios.get(this.$baseUrl+'/api/v1/site-info', axiosConfig).then(response => {
+            this.site_info = response.data;
+            this.navbars = response.data.navbars
+            if(this.site_info.social_login == 1){
+               this.initFacebook();
+               this.logInWithGoogle();
+            }
+            
+         });
+       },
+   
+      search_suggest(){
+         $('.search_suggest_wrapper').show();
+         let searchContent = $('.searchContent').val();
+
+         if(searchContent.length > 2){
+           axios.get(this.$baseUrl+'/api/v1/get-search-suggetion/'+searchContent).then(response => {
+             this.suggetionProduct = response.data;
+             if(response.data.status == 1){
+               $('.search_suggest_wrapper').show();
+               this.suggetionProductstatus = true;
+             }else{
+               this.suggetionProductstatus = false;
+               $('.search_suggest_wrapper').show();
+             }
+             this.suggetionShops = response.data.shops;
+             this.suggetionCategories = response.data.categories;
+           });
+         }else{
+           $('.search_suggest_wrapper').hide();
+         }
+      },
+
+      mobile_search_suggest(){
+         $('.mobile_search_suggest_wrapper').show();
+         let searchContent = $('.mobileSearchContent').val();
+
+         if(searchContent.length > 2){
+           axios.get(this.$baseUrl+'/api/v1/get-search-suggetion/'+searchContent).then(response => {
+             this.suggetionProduct = response.data;
+             if(response.data.status == 1){
+               $('.mobile_search_suggest_wrapper').show();
+               this.suggetionProductstatus = true;
+             }else{
+               this.suggetionProductstatus = false;
+               $('.mobile_search_suggest_wrapper').show();
+             }
+             this.suggetionShops = response.data.shops;
+             this.suggetionCategories = response.data.categories;
+           });
+         }else{
+           $('.mobile_search_suggest_wrapper').hide();
+         }
+      },
+
+
+       scrollToTop(){
+         window.scrollTo(0,0);
+       },
+   
+       loading_method(){
+   		 this.loading = true;
+   	},
+      proceedToPay(){
+            let collectedVoucher = '';
+            let usedVoucher = '';
+   			let token = localStorage.getItem("token");
+   			let axiosConfig = {
+   			  headers: {
+   				  'Content-Type': 'application/json;charset=UTF-8',
+   				  "Access-Control-Allow-Origin": "*",
+   				  'Authorization': 'Bearer '+token
+   			  }
+   			}
+   
+               if(jQuery('.required_addtess').attr('data-required-address') == 'true'){
+                   swal ( "Oops" , 'Please select your default shipping address!',  "error");
+                   return true;
+               }
+
+               if(jQuery('.required_addtess').attr('data-required-login') == 'true'){
+                   jQuery('#popupLoignModal').trigger('click');
+                   return true;
+               }
+   
+               if(this.useableVouchers.length){
+                   let isCheckedUsedVoucher = false;
+                   jQuery('.useable_vouchers_radio').each(function(key,val){
+                       if (jQuery(this).is(':checked')) {
+                           isCheckedUsedVoucher = true;
+                           usedVoucher = jQuery(this).val();
+                       }
+                   });
+                   if(!isCheckedUsedVoucher){
+                       swal ( "Oops" , 'Please select which voucher you want to use!',  "error");
+                       jQuery('.voucher_button li').addClass('validated_class');
+                       return true;
+                   }
+               }
+   
+               if (jQuery('.agree').is(':checked')) {
+   
+                       let shipping_method  = [];
+   
+                       jQuery('.select_shipping_options .selected_shipping').each(function(key,val){
+                           shipping_method[key] = { 
+                               product_id : jQuery(this).attr('data-product-id'),
+                               shipping_method: jQuery(this).attr('data-shipping-method'),
+                               shipping_cost: jQuery(this).attr('data-shipping-cost'),
+                           }
+                       });
+   
+                       let formData = {
+                           note: jQuery('.form_note').val(),
+                           coupon: jQuery('#couponeCode').val(),
+                           partial_payment: jQuery('#partial_payment').val(),
+                           collectedVoucher: collectedVoucher,
+                           usedVoucher: usedVoucher,
+                           payment_method : jQuery('.paymentmethod .selected_payment').attr('data-payment-method'),
+                           shipping_method : shipping_method,
+                           shipping_cost: Number(jQuery('.payment-calculation .shipping_cost_li1').attr('data-shipping-cost'))
+                       }
+        
+                       
+                       $('.proceed_to_pay').attr('disabled', true);
+                       $('.proceed_to_pay').html('<span class="spinner-border spinner-border-sm"></span>');
+                       
+   
+                       axios.post(this.$baseUrl+'/api/v1/order', formData, axiosConfig).then(response => {
+                           if(response.data.status == 1){
+                               swal({
+                                   title: 'Your order has been placed successfully.',
+                                   icon: "success",
+                                   timer: 3000
+                               }).then(()=>{
+                                   $('.proceed_to_pay').attr('disabled', false);
+                                   $('.proceed_to_pay').html('Proceed To Pay');
+                                   $('.cart_close').trigger('click');
+                                   
+                                   this.$store.dispatch('loadedCart');
+                                   this.$router.push({name:'orderDetails',params: {id: response.data.invoice.order_id } });
+                               });
+                           }else if(response.data.status == 2){
+                               swal({
+                                   title: response.data.message,
+                                   icon: "error",
+                                   timer: 4000
+                               }).then(()=>{
+                                   $('.proceed_to_pay').attr('disabled', false);
+                                   $('.proceed_to_pay').html('Proceed To Pay');
+                                   this.$store.dispatch('loadedCart');
+                               });
+                           }else if( response.data.status == 302){
+                               window.location.href = response.data.url;
+                           }else if(response.data.status == 0){
+                               swal({
+                                   title: response.data.message,
+                                   html:true,
+                                   icon: "error",
+                                   timer: 10000
+                               }).then(()=>{
+                                   $('.proceed_to_pay').attr('disabled', false);
+                                   $('.proceed_to_pay').html('Proceed To Pay');
+                               });
+                           }else{
+                               swal ( "Oops" , 'Order Failed! Please try again later',  "error");
+                           }
+                       });
+               }else{
+                   swal ( "Oops" , 'Please accept terms and conditions!',  "error");
+               }
+   },
+   
+           checkUseableVoucher(){
+               let usedVoucher = 0;
+               jQuery('.close').trigger('click');
+                jQuery('.useable_vouchers_radio').each(function(key,val){
+                   if (jQuery(this).is(':checked')) {
+                       usedVoucher = jQuery(this).attr('data-voucher-discount');
+                   }
+               });
+               jQuery('.show_voucher_discount').attr('data-voucher-discount',Number(usedVoucher));
+               jQuery('.show_voucher_discount .v_amount').html('BDT '+usedVoucher);
+               this.calculateFinalAmount();
+           },
+   
+           calculateFinalAmount(){
+               calculateShipping();
+                  //  let subTotal = Number(jQuery('.data_sub_total').attr('data-subtotal-amount'));
+                  //  let shippingCost = Number(jQuery('.shipping_cost_li').attr('data-shipping-cost'));
+
+                  //  let packagingCost = Number(jQuery('.data_packaging_cost').attr('data-packaging-cost-amount'));
+                  //  let securityCost = Number(jQuery('.data_security_charge').attr('data-security-charge-amount'));
+
+                  //  let couponAmount = jQuery('.coupon_discount').attr('data-coupon-discount') ? Number(jQuery('.coupon_discount').attr('data-coupon-discount')) : 0;
+                  //  let voucherAmount = jQuery('.show_voucher_discount').attr('data-voucher-discount') ? Number(jQuery('.show_voucher_discount').attr('data-voucher-discount')) : 0;
+                  //  this.finalCalculatedTotal = (subTotal+shippingCost+packagingCost+securityCost) - (couponAmount+voucherAmount);
+                  //  $('.calculatedTotal').text(this.finalCalculatedTotal);
+   
+           },
+         imageLoadError(event){
+   			event.target.src = "/images/notfound.png";
+   		},
+         addNewAddress(){
+               let token = localStorage.getItem("token");
+               let axiosConfig = {
+                   headers: {
+                       'Content-Type': 'application/json;charset=UTF-8',
+                       "Access-Control-Allow-Origin": "*",
+                       'Authorization': 'Bearer '+token
+                   }
+               }
+               let formData = new FormData();
+               formData.append('shipping_first_name', $('.shipping_first_name0').val());
+               formData.append('shipping_division', $('#division0').find('option:selected').val());
+               formData.append('shipping_district', $('#district0').find('option:selected').val());
+               formData.append('shipping_thana', $('#upazila0').find('option:selected').val());
+               formData.append('shipping_union', $('#union0').find('option:selected').val());
+               formData.append('shipping_postcode', $('.popup_post_code0').val());
+               formData.append('shipping_phone', $('.popup_phone0').val());
+               formData.append('shipping_email', $('.shipping_email0').val());
+               formData.append('shipping_address', $('.shipping_address0').val());
+   
+               axios.post(this.$baseUrl+'/api/v1/add-new-address', formData, axiosConfig).then(response => {
+                   if(response.data.status == 1){
+                       swal({
+                           title: 'New address added successfull.',
+                           icon: "success",
+                           timer: 3000
+                       });
+                       this.$store.dispatch('loadedUser');
+                       jQuery('a[href="#home"]').trigger('click');
+                   }else{
+                       this.errors = response.data.message;
+                   }
+               });
+           },
+           change_address(address_id,pickpoint){
+   			let token = localStorage.getItem("token");
+   			let axiosConfig = {
+   				headers: {
+   					'Content-Type': 'application/json;charset=UTF-8',
+   					"Access-Control-Allow-Origin": "*",
+   					'Authorization': 'Bearer '+token
+   				}
+   			}
+   			let formData = new FormData();
+   			formData.append('address_id', address_id);
+   			formData.append('pickpoint', pickpoint);
+
+               axios.post(this.$baseUrl+'/api/v1/update-default-address', formData, axiosConfig).then(response => {
+   				if(response.data.status == 1){
+                       this.$store.dispatch('loadedCart');
+                       this.$store.dispatch('loadedUser');
+                       jQuery('.close').trigger('click');   
+                  }else{
+                       swal ( "Please check" ,  response.data.message,  "error");
+                   }
+   			});
+           },
+       
+   
+   
+           async getDistrict(){
+           let id =  jQuery('#division0').find('option:selected').val();
+           await axios.get(this.$baseUrl + "/api/v1/get-district/"+id).then((response) => {
+                   this.upazilas = {};
+                   this.unions = {};
+                   this.districts = response.data;
+               });
+           },
+           
+           async getUpazila(){
+               let id =  jQuery('#district0').find('option:selected').val();
+               await axios.get(this.$baseUrl + "/api/v1/get-upazila/"+id).then((response) => {
+                       this.unions = {};
+                       this.upazilas = response.data;
+                   });
+               },
+               async getUnion(){
+                   let id =  jQuery('#upazila0').find('option:selected').val();
+               await axios.get(this.$baseUrl + "/api/v1/get-union/"+id).then((response) => {
+                       this.unions = response.data;
+                   });
+           },
+   
+   
+   		applyCouponCode(){
+               let token = localStorage.getItem("token");
+   			let axiosConfig = {
+   				headers: {
+   					'Content-Type': 'application/json;charset=UTF-8',
+   					"Access-Control-Allow-Origin": "*",
+   					'Authorization': 'Bearer '+token
+   				}
+   			}
+   
+   			let formData = new FormData();
+   			formData.append('coupon', $('#couponeCode').val());
+               axios.post(this.$baseUrl+'/api/v1/get-coupon-amount', formData,axiosConfig).then(response => {
+                   if(response.data.status == 1){
+                       this.coupon_discount = response.data;
+                       jQuery('.coupon_discount').attr('data-coupon-discount',response.data.amount);
+   
+                       jQuery('#addCouponBlock').hide();
+                       jQuery('.coupon_discount').show();
+                       this.calculateFinalAmount();
+                       swal({
+   						title: response.data.message,
+   						icon: "success",
+   						timer: 3000
+   					});
+                   }else{
+                       swal ( "Oops", response.data.message, "error");
+                   }
+   				
+   			});
+   		},
+
+         save_search_content(){
+            let that = this;
+            var typingTimer;
+            var doneTypingInterval = 5000; 
+            $('#myInput').keyup(function(){
+               clearTimeout(typingTimer);
+               if ($('#myInput').val()) {
+                  typingTimer = setTimeout(doneTyping, doneTypingInterval);
+               }
+            });
+            function doneTyping(){
+               let token = localStorage.getItem("token");
+               let axiosConfig = {
+                  headers: {
+                     'Content-Type': 'application/json;charset=UTF-8',
+                     "Access-Control-Allow-Origin": "*",
+                     'Authorization': 'Bearer '+token
+                  }
+               }
+               let session_key = localStorage.getItem("session_key");
+               let formData = new FormData();
+               formData.append('searchContent', $('#myInput').val());
+               formData.append('session_key', session_key);
+               let inpt =  $('#myInput').val();
+               if(inpt.length > 2){
+                  axios.post(that.$baseUrl+'/api/v1/save-what-user-search', formData, axiosConfig).then(response =>{
+                     console.log(response.data);
+                  });
+               }
+            }
+         },
+
+         removeCoupon(){
+               jQuery('#addCouponBlock').show();
+               jQuery('.coupon_discount').hide();
+               jQuery('.coupon_discount').attr('data-coupon-discount',0)
+               let that = this;
+               setTimeout(function(){ 
+                   that.calculateFinalAmount();
+                },200);
+           },
+
+         showCheckoutSection(){
+            this.calculateFinalAmount();
+            this.$store.dispatch('loadedVoucher');
+            this.$store.dispatch('loadedUsableVoucher');
+         },
+
+         requestForQuatation(){
+            jQuery(this).attr('disabled');
+   			let token = localStorage.getItem("token");
+   			let axiosConfig = {
+   				headers: {
+   					'Content-Type': 'application/json;charset=UTF-8',
+   					"Access-Control-Allow-Origin": "*",
+   					'Authorization': 'Bearer '+token
+   				}
+   			}
+   			axios.post(this.$baseUrl+'/api/v1/request-for-quatation','',axiosConfig).then(response =>{
+   				if(response.data.status == '1'){
+   					this.$store.dispatch('loadedCart');
+   					swal({
+   						title: response.data.message,
+   						icon: "success",
+   						timer: 3000
+   					});
+   				}else{
+   					swal ( "Oops", response.data.message, "error");
+   				}
+   
+   			});
+         },
+   		updateShippingOption(shipping_method, shipping_cost, rowId){
+   			let token = localStorage.getItem("token");
+   			let axiosConfig = {
+   				headers: {
+   					'Content-Type': 'application/json;charset=UTF-8',
+   					"Access-Control-Allow-Origin": "*",
+   					'Authorization': 'Bearer '+token
+   				}
+   			}
+   			let formData = new FormData();
+   			formData.append('shipping_method', shipping_method);
+   			formData.append('shipping_cost', shipping_cost);
+   			formData.append('rowId', rowId);
+   			axios.post(this.$baseUrl+'/api/v1/update-shipping-option', formData,axiosConfig).then(response =>{
+   				if(response.data.status == '1'){
+   					this.$store.dispatch('loadedCart');
+   					swal({
+   						title: "Shipping method updated Successfully.",
+   						icon: "success",
+   						timer: 3000
+   					});
+   				}else{
+   					swal ( "Oops", response.data.message, "error");
+   				}
+   
+   			});
+   		},
+   
+     },
+
+     updated(){
+         $('.reload_calculation').trigger('click');
+      },
+   
+     computed:{
+         compreVuex(){
+            return this.$store.getters.getLoadedCompare;
+         },
+         wishlistVuex(){
+            return this.$store.getters.getLoadedWishlist;
+         },
+         user(){
+            return this.$store.getters.getLoadedUser.user;
+         },
+         logged_in_user(){
+            return this.$store.getters.getLoadedUser.user;
+         },
+         notificationsData(){
+            return this.$store.getters.getLoadedNotifications;
+         },
+         collectedVoucher(){
+               return this.$store.getters.getLoadedVocher;
+         },
+         useableVouchers(){
+               return this.$store.getters.getLoadedUseableVocher;
+         },
+      
+         cartData(){
+            this.sub_total = this.$store.getters.getLoadedCart.sub_total;
+            this.finalCalculatedTotal =  this.sub_total+this.$store.getters.getLoadedCart.shipping_cost
+            return this.$store.getters.getLoadedCart;
+         },
+         logged_in_user_address(){
+               let x = this.$store.getters.getLoadedUser.address;
+               let res = 0;
+               if(x != undefined){
+                  if(x.length != 0){
+                        res = this.$store.getters.getLoadedUser.address;
+                  }
+               }
+               return res;
+         },
+         pickpoint_address(){
+               let x = this.$store.getters.getLoadedUser.pickpoints;
+               let res = 0;
+               if(x != undefined){
+                  if(x.length != 0){
+                        res = this.$store.getters.getLoadedUser.pickpoints;
+                  }
+               }
+               return res;
+         },
+         selected_pickpoint(){
+            let x = this.$store.getters.getLoadedUser.selected_pickpoint;
+               let res = 0;
+               if(x != undefined){
+                  if(x.length != 0){
+                        res = this.$store.getters.getLoadedUser.selected_pickpoint;
+                  }
+               }
+               return res;
+         }
+     },
+      watch:{
+       $route(to, from){
+         $('.search_suggest_wrapper').hide();
+         $('.mobile_search_suggest_wrapper').hide();
+
+         this.scrollToTop();
+         $('#php').val();
+         $('#password').val();
+         if(this.$route.name == 'home'){
+           $('.nav_wrapper').show();
+         }else{
+           $('.nav_wrapper').hide();
+         }
+         
+      }
+       
+     },
+     mounted(){
+      this.$store.dispatch('loadedNotifications');
+      this.$store.dispatch('loadedWishlist');
+      this.save_search_content();
+      this.scrollToTop();
+      const plugin = document.createElement("script");
+      plugin.setAttribute( "src",this.$frontendUrl+"/assets/js/custom.js");
+      plugin.async = true;
+      document.body.appendChild(plugin);
+      this.$i18n.locale = localStorage.getItem("lang");
+      if(localStorage.getItem("lang") == 'bn'){
+         $( ".lang_selector" ).prop( "checked", true );
+         $('body').addClass('bangla');
+      }
+      this.site_information();
+      this.load_categories();
+      this.baseurl = this.$baseUrl;
+      this.load_promotional_offer_title();
+      this.loading_method();
+      this.load_static_pages();
+
+     },
+   }
+</script>
