@@ -43,7 +43,7 @@
 
                                     <td>{{index+1}}</td>
                                     <td>{{ order.created_at | formatDate }} </td>
-                                    <td> KBC{{order.id}}</td>
+                                    <td> MSC{{order.id}}</td>
                                     <td> {{order.qty}}</td>
                                     <td>BDT {{order.amount}}</td>
                                     <td>BDT {{ order.discount }}</td>

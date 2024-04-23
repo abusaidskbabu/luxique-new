@@ -289,7 +289,7 @@
 
                         <div class="row">
                             <div class="col-lg-6 text-right"><p>{{ $t('Already have a accont') }} ? </p></div>
-                             <div class="col-lg-6"><b><a href="https://staging-seller.kholabazaar.com.bd" target="__blank"> {{ $t('Login as seller') }} </a></b>  </div>
+                             <div class="col-lg-6"><b><a href="https://seller.mabiyshop.com" target="__blank"> {{ $t('Login as seller') }} </a></b>  </div>
                             
                         </div>
                     </form>

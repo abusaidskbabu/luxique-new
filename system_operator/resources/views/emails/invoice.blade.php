@@ -93,7 +93,7 @@ if($data->is_pickpoint == 1){
             <td style="width: 650px;">
                 <div style="display: flex; -ms-flex-wrap: wrap;flex-wrap: wrap;padding: 0!important;">
                     <div  style="display: inline-block; margin-right: auto;"> <span style="text-transform: uppercase;font-size: 20px;font-weight: 600;">Invoice</span>  </div>
-                    <div  style="display: inline-block; margin-left: auto;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: KB{{ date("y", strtotime($data->created_at)) }}{{$data->id}} </span> </div>
+                    <div  style="display: inline-block; margin-left: auto;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: MS{{ date("y", strtotime($data->created_at)) }}{{$data->id}} </span> </div>
                 </div>
             </td>
         </tr>
@@ -108,21 +108,20 @@ if($data->is_pickpoint == 1){
           <td style="width: 400px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Item</strong></td>
           <td style="width: 200px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Qty</strong></td>
           <td style="width: 200px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Price</strong></td>
-          <td style="width: 220px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Shipping Cost</strong></td>
           <td style="width: 120px; text-align: right;text-transform: uppercase;font-size: 12px;"><strong>  Sub Total</strong></td>
       </tr>
-      @php $subtotal = 0; $shipping_cost =0; @endphp
+      @php $subtotal = 0; 
+      $shipping_cost = $order->shipping_cost ?? 0; 
+      @endphp
     @foreach($data->order_details as $item)
       @php
          $subtotal += ($item->product_qty*$item->price); 
-         $shipping_cost += ($item->shipping_cost*$item->product_qty);
       @endphp
       <tr style="padding: 5px;">
          <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;">{{$loop->index + 1}}.</td>
          <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;">{{ $item->product->title }}</td>
          <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;"><span style="font-size: 12px;"> {{ $item->product_qty }}</span></td>
          <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;">BDT <span style="font-size: 12px;"> {{ $item->price }}</span></td>
-         <td style="width: 120px; text-align: left;font-size: 12px;">BDT {{ $item->shipping_cost }}</td>
          <td style="width: 120px; text-align: right;font-size: 12px;">BDT {{ ($item->product_qty*$item->price) }}</td>
       </tr>
     @endforeach
@@ -154,9 +153,11 @@ if($data->is_pickpoint == 1){
             </tr>
         </tbody>
     </table>
-    <table style="width: 650px;text-align:left; margin:50px auto">
+    <table style="width: 650px;text-align:left; margin:50px auto;">
         <tbody style="text-align: center;">
-            <p style="font-size:12px;text-align: center;">Thank you for being with us. Stay connected with <b>www.kholabazaar.com.bd</b> </p>
+            <p style="font-size:12px;text-align: center;"><strong>Order Note: </strong>{{$data->note ?? ''}}</p>
+            <p style="font-size:12px;text-align: center;">Thank you for being with us. Stay connected with <b>mabiyshop.com</b> </p>
+            <p style="text-align: center;"><img src="data:image/png;base64, {{DNS1D::getBarcodePNG('MS'.date("y", strtotime($data->created_at)).$data->id, 'C39',5,10) }}" alt=""  width="150px" height="30px"></p>
         </tbody>
     </table>
   

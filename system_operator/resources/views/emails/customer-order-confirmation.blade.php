@@ -67,7 +67,7 @@
             <td style="width: 650px;">
                 <div style="display: flex; -ms-flex-wrap: wrap;flex-wrap: wrap;padding: 0!important;">
                     <div  style="display: inline-block; margin-right: auto;"> <span style="text-transform: uppercase;font-size: 20px;font-weight: 600;">Invoice</span>  </div>
-                    <div  style="display: inline-block; margin-left: auto;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: KB{{ date("y", strtotime($data->created_at)) }}{{$data->id}} </span> </div>
+                    <div  style="display: inline-block; margin-left: auto;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: MS{{ date("y", strtotime($data->created_at)) }}{{$data->id}} </span> </div>
                 </div>
             </td>
         </tr>
@@ -85,7 +85,10 @@
           <td style="width: 220px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Shipping Cost</strong></td>
           <td style="width: 120px; text-align: right;text-transform: uppercase;font-size: 12px;"><strong>  Sub Total</strong></td>
       </tr>
-      @php $subtotal = 0; $shipping_cost =0; @endphp
+      @php 
+        $subtotal = 0; 
+        $shipping_cost = $order->shipping_cost ?? 0; 
+      @endphp
     @foreach($data->order_details as $item)
       @php
          $subtotal += ($item->product_qty*$item->price); 

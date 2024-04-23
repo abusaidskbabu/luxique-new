@@ -527,14 +527,12 @@ class PagesController extends Controller
             ->where('user_type', 2)
             ->where('user_id', Auth::id())
             ->where('status','!=', 0)
-            ->orderBy('id', 'desc')
-            ->get();
+            ->orderBy('id', 'desc');
         } else {
             $data =  $data = \DB::table('notifications')
             ->where('user_type','!=',1)
             ->where('status','!=', 0)
-            ->orderBy('id', 'desc')
-            ->get();
+            ->orderBy('id', 'desc');
         }
 
 
@@ -544,11 +542,11 @@ class PagesController extends Controller
             ->addColumn('user', function ($row) {
                 if ($row->user_type == 2 || $row->user_type == 3) {
                     //Admin or Seller
-                    $user = Admins::where('id', $row->user_id)->with('shopinfo')->get();
-                    foreach ($user as $key => $value) {
+                    $user = Admins::where('id', $row->user_id)->with('shopinfo')->first();
+                    // foreach ($user as $key => $value) {
                         // return 'Seller Name: '.$value->name.'<br><br> Shop Name : '.$value->shopinfo->name;
-                        return $value->name ?? ' - ';
-                    }
+                        return $user->name ?? ' - ';
+                    // }
                 }
             })
 

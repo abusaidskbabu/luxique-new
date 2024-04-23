@@ -1,26 +1,23 @@
 <template>
-    <div class="product">
+    <div typeof="schema:Product" class="product" :itemprop="'itemListElement'"  >
         <div class="product-image">
             <div class="product_badge" v-if="data.offer_percentage > 0">
             <span>-{{data.offer_percentage}}%</span>
             </div>
             <div v-if="data.shop_verified.if_veryfied" class="product_badge_flagship"><span> <img :src="baseurl+'/'+data.shop_verified.veryfied_banner" alt="Flagship"> </span></div>
-            <router-link :to="{ name: 'product', params: {slug: data.slug } }"><img :src="thumbnailUrl+'/'+data.default_image" alt=""></router-link>
+            <router-link :to="{ name: 'product', params: {slug: data.slug } }"><img property="schema:image" @error="imageLoadError" :src="thumbnailUrl+'/'+data.default_image" alt=""></router-link>
         </div>
         <div class="product-details">
                 <div v-if="parseInt(data.price_after_offer.replace(/,/g, '')) == parseInt(data.price.replace(/,/g, ''))" class="offer_gap"></div>
                 <router-link :to="{ name: 'product', params: {slug: data.slug } }">
-                <p class="elipsis_title">{{data.title}}</p>
-
-                <!-- <p v-if="data.title.length > 20">{{  data.title.substr(0, 20)+".." }}</p>
-                <p v-else>{{  data.title.substr(0, 20) }}</p> -->
+                    <p property="schema:name" class="elipsis_title">{{data.title}}</p>
                 </router-link>
 
             <div class="product-title">
-                <div class="price">
+                <div typeof="schema:Offer" class="price">
                 <ul>
                     <li>  
-                    <div class="now-price">BDT {{  data.price_after_offer }}</div> 
+                    <div property="schema:price" class="now-price">BDT {{  data.price_after_offer }}</div> 
                     </li>
                     <li><div class="old-price"> <del v-if="parseInt(data.price_after_offer.replace(/,/g, ''))  < parseInt(data.price.replace(/,/g, ''))">BDT {{ data.price }}</del> </div></li>
                 </ul>
@@ -45,14 +42,21 @@
                 </div>
                 <div v-else class="row p-0">
                 <span v-if="data.in_stock > 0 && data.qty > 0" style="width: 90%;margin: 0 auto;">
-                    <div class="row">
+                    <div class="row all-efecive-btns">
                         <ul class="hover_icon_group icon_group">
                             <li><i class="fa fa-heart" @click="addToWishlist(data.id)" aria-hidden="true"></i></li>
                             <li><i class="fa fa-eye"  :data-modal="data.id" data-toggle="modal" :data-target="'#quickViewModal'+data.id" aria-hidden="true"></i></li>
                             <li><i class="fa fa-retweet"  @click="addToCompare(data.id)" aria-hidden="true"></i></li>
                         </ul>
-                        <div class="col-12 col-sm-12 col-md-12">
-                            <a :class="'add_to_cart disabledbtn'+data.id" type="submit" name="price"  @click.prevent="addToCart(data.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }}</a>
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6 pr-1 add_to_cart_area">
+                            <a :class="'add_to_cart disabledbtn'+data.id" type="submit" name="price"  @click.prevent="addToCart(data.id)"> 
+                                {{ $t('Add To Cart') }}
+                            </a>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6 pl-1 buy_now_area">
+                            <a :class="'buy_now buynowdisabledbtn'+data.id" type="submit" name="price"  @click.prevent="buyNow(data.id)">
+                                {{ $t('Buy Now') }}
+                            </a>
                         </div>
                     </div>
                 </span>
@@ -67,42 +71,6 @@
                     <div class="col-md-12 text-center"> <a class="out_of_stock" >{{ $t('Out Of Stock') }}</a></div>
                 </span>
                 </div>
-
-                <!-- <div v-if="data.product_type == 'variable'" class="text-center variable_details">
-                <div class="row">
-                    <div class="col-6 col-sm-6 col-md-6">
-                        <ul class="icon_group mt-1">
-                        <li><i class="fa fa-heart" @click="addToWishlist(data.id)" aria-hidden="true"></i></li>
-                        <li><i class="fa fa-eye" :data-modal="data.id" data-toggle="modal" :data-target="'#quickViewModal'+data.id" aria-hidden="true"></i></li>
-                        <li><i class="fa fa-retweet"  @click="addToCompare(data.id)" aria-hidden="true"></i></li>
-                        </ul>
-                    </div>
-                    <div class="col-6 col-sm-6 col-md-6 p-0">
-                        <router-link :to="{ name: 'product', params: {slug: data.slug } }" :class="'add_to_cart disabledbtn'+data.id" ><i class="fa fa-info-circle"></i>{{ $t('Details') }}</router-link>
-                    </div>
-                    </div>
-                </div>
-                <div v-else class="row p-0">
-                <span v-if="data.in_stock > 0 && data.qty > 0" style="width: 90%;margin: 0 auto;">
-                    <div class="row">
-                    <div class="col-6 col-sm-6 col-md-6">
-                        <ul class="icon_group mt-1">
-                            <li><i class="fa fa-heart" @click="addToWishlist(data.id)" aria-hidden="true"></i></li>
-                            <li><i class="fa fa-eye"  :data-modal="data.id" data-toggle="modal" :data-target="'#quickViewModal'+data.id" aria-hidden="true"></i></li>
-                            <li><i class="fa fa-retweet"  @click="addToCompare(data.id)" aria-hidden="true"></i></li>
-                        </ul>
-                    </div>
-                    <div class="col-6 col-sm-6 col-md-6 p-0">
-                        <a :class="'add_to_cart disabledbtn'+data.id" type="submit" name="price"  @click.prevent="addToCart(data.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }}</a>
-                    </div>
-                    </div>
-                </span>
-                <span v-else>
-                    <div class="col-md-12 text-center"> <a class="out_of_stock" >{{ $t('Out Of Stock') }}</a></div>
-                </span>
-                </div> -->
-                <!--Add to Cart Button End-->
-
             </div>
         </div>
     </div>
@@ -123,8 +91,20 @@ export default {
         }
     },
     props:['data'],
+    computed: {
+        schemaPrice() {
+        // Format the price as per your requirements
+        return `BDT ${this.data.price_after_offer}`;
+        },
+        schemaOldPrice() {
+        // Format the old price as per your requirements
+        return `BDT ${this.data.price}`;
+        }
+    },
     methods:{
-      
+            imageLoadError(event){
+                event.target.src = "/images/notfound.png";
+            },
 
             addToCompare(product_id){
                 let session_key = localStorage.getItem("session_key");
@@ -205,9 +185,9 @@ export default {
                     }).then(()=>{
                         $('.disabledbtn'+product_id).attr('disabled', true);
                         if(lang == 'bn'){
-                             $('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> যুক্ত করুন');
+                             $('.disabledbtn'+product_id).html('যুক্ত করুন');
                         }else{
-                            $('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Add To Cart');
+                            $('.disabledbtn'+product_id).html('Add To Cart');
                         }
                     });
                     }else{
@@ -216,9 +196,54 @@ export default {
                         $('.quickview_add_cart').attr('disabled', false);
                         
                         if(lang == 'bn'){
-                             $('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> যুক্ত করুন');
+                             $('.disabledbtn'+product_id).html('যুক্ত করুন');
                         }else{
-                            $('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Add To Cart');
+                            $('.disabledbtn'+product_id).html('Add To Cart');
+                        }
+                    }
+                });
+        },
+        buyNow(product_id){
+            $('.buynowdisabledbtn'+product_id).attr('disabled', true);
+            $('.buynowdisabledbtn'+product_id).html('<span class="spinner-border spinner-border-sm"></span>');
+            let session_key = localStorage.getItem("session_key");
+            let token = localStorage.getItem("token");
+            let axiosConfig = {
+                headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                "Access-Control-Allow-Origin": "*",
+                'Authorization': 'Bearer '+token
+                }
+            }
+
+            let lang = localStorage.getItem("lang");
+                axios.post(this.$baseUrl+'/api/v1/add-to-cart', {product_id:product_id,qty:1,session_key:session_key},axiosConfig ).then(response => {
+                    if(response.data.status == 1){
+                    this.$store.dispatch('loadedCart');
+					jQuery('.back_to_cart').trigger('click');
+                    swal({
+                        title: "Product added to cart Successfully.",
+                        icon: "success",
+                        timer: 1000
+                    }).then(()=>{
+                        $('.buynowdisabledbtn'+product_id).attr('disabled', true);
+                        if(lang == 'bn'){
+                             $('.buynowdisabledbtn'+product_id).html('এখন কিনুন');
+                        }else{
+                            $('.buynowdisabledbtn'+product_id).html('Buy Now');
+                        }
+                        jQuery('.show_checkout_section').trigger('click');
+                        jQuery('.left_cart_icon').trigger('click');
+                    });
+                    }else{
+                    swal ( "Oops", response.data.message, "error");
+                        $('.buynowdisabledbtn'+product_id).attr('disabled', false);
+                        $('.quickview_add_cart').attr('disabled', false);
+                        
+                        if(lang == 'bn'){
+                             $('.disabledbtn'+product_id).html('এখন কিনুন');
+                        }else{
+                            $('.disabledbtn'+product_id).html('Buy Now');
                         }
                     }
                 });

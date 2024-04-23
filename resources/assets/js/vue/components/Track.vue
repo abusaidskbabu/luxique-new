@@ -47,7 +47,7 @@
 						<div class="track_order_id"></div>
 						<article class="card">
 							<div class="card-body row">
-								<div class="col"> <strong>{{ $t('Order ID') }} </strong> <br> KB{{single_order.created_at|prefix_year}}{{ single_order.id }} </div>
+								<div class="col"> <strong>{{ $t('Order ID') }} </strong> <br> MS{{single_order.created_at|prefix_year}}{{ single_order.id }} </div>
 								<div class="col"> <strong>{{ $t('Shipping BY') }}</strong> <br><router-link :title="shopinfo.name" :to="{ name: 'shop', params: {slug: shopinfo.slug } }"> {{ shopinfo.name }} </router-link></div>
 								<!-- <div class="col"> <strong>Shipping Method</strong> <br> {{ single_product.shipping_method.replace('_', ' ') }} </div> -->
 								<div class="col"> <strong> {{ $t('Shipping Status') }} </strong> <br> <span v-for="(status, index) in allStatuses" :key="index"> <b v-if="single_product.status == status.id" :style="{color: status.color_code}">{{ status.title }}</b> </span>  </div>

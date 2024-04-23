@@ -1337,14 +1337,14 @@ class VendorApiController extends Controller{
             //Send Push Notification to User
             $user_id = Order::find($order_details->order_id)->user_id;
             $message = [
-                    'order_id' =>'KB'. Carbon::parse($order_details->created_at)->format('y') .$order_details->order_id,
+                    'order_id' =>'MS'. Carbon::parse($order_details->created_at)->format('y') .$order_details->order_id,
                     'type' =>'order',
                     'message' =>'Order status successfully updated !',
                     'status_id' =>$request->status,
                     ];
 
             Helper::sendPushNotification($user_id,1,'Order Status','Order Status Changed !',json_encode($message));
-            \Helper::sendSms($user->phone,'আপনার অর্ডার স্ট্যাটাস পরিবর্তন করা হয়েছে! অর্ডার আইডি হল #'.'KB' . date('y', strtotime(Carbon::now())) .'  অর্ডার স্ট্যাটাস# '.$status->title);
+            \Helper::sendSms($user->phone,'আপনার অর্ডার স্ট্যাটাস পরিবর্তন করা হয়েছে! অর্ডার আইডি হল #'.'MS' . date('y', strtotime(Carbon::now())) .'  অর্ডার স্ট্যাটাস# '.$status->title);
 
             //Send Push Notification to Seller
             Helper::sendPushNotification($user->id,2,'Order Status','Order Status Changed!',json_encode($message));

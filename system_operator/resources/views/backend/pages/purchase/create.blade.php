@@ -279,12 +279,12 @@
 
                     let balance = $('#payment_method').children("option:selected").attr('data-balance');
                     
-                    // if(Number(balance) < Number($('#payable_amount').val())){
-                    //     $('#purchase_save_btn').prop('disabled', true);
-                    //     //alert(balance);
-                    // }else{
-                    //     $('#purchase_save_btn').prop('disabled', false);
-                    // }
+                    if(Number(balance) < Number($('#payable_amount').val())){
+                        $('#purchase_save_btn').prop('disabled', true);
+                        //alert(balance);
+                    }else{
+                        $('#purchase_save_btn').prop('disabled', false);
+                    }
                 }
 
                 $('#supplier_id').on('change', function(e) {

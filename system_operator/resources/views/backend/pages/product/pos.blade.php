@@ -35,10 +35,8 @@
                 <div class="product_search">
                     <div class="input-group">
                         <select class="form-control selectpicker" data-live-search="true"  name="select_user" id="select_user" aria-describedby="button-addon2">
-                            <option value="-1">-- Select Customer --</option>
-                            @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->name }} - {{ $customer->phone }}</option>
-                            @endforeach
+                            
+                            
                         </select>
                         <button class="btn btn-outline-secondary" type="button" data-toggle="modal" data-target="#customerAddModal" title="Add Customer"><i class="mdi mdi-plus"></i></button>
                     </div>
@@ -72,43 +70,95 @@
         </div>
         <div class="row">
             <div class="col-md-4 col-sm-12 p-1">
-                <div class="row" id="product_list_area">
-                    @foreach($products as $product)
-                        <div class="col-sm-6 col-12 col-lg-4 col-xl-4 mb-0 p-1">
-                            <div class="card mb-0">
-                                <div class="card-body">
-                                    <div class="card-img-actions">
-                                        <img src="{{'/media/thumbnail/'.$product->default_image}}" class="card-img img-fluid" width="96" height="350" alt="">
-                                    </div>
-                                </div>
-                                <div class="card-body bg-light text-center details_card">
-                                    <div class="details_section">
-                                        <h6 class="font-weight-semibold mb-0">
-                                            <a href="#" class="text-primary mb-0 productViewBtn" id="{{ $product->id}}" data-abc="true">{{$product->title}}</a>
-                                        </h6>
-                                        @if($product->product_type != 'variable')
-                                            <p class="mb-0" >SKU: {{$product->sku}}</p>
-                                        @endif
-                                        <small class="text-danger" >Seller: {{ $product->seller->shopinfo->name ?? '' }}</small>
-                                    </div>
-                                    <p class="mb-2 font-weight-semibold">{{ 'BDT '.\Helper::price_after_offer($product->id) }}</p>
-                                    
-                                        @if($product->product_type == 'simple')
-                                            <button type="button" style="padding: 3px 5px;" class="btn btn-primary simple_add_to_cart" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
-                                        @elseif($product->product_type == 'digital' || $product->product_type == 'service')
-                                            <button type="button" style="padding: 3px 5px;" class="btn btn-primary digital_add_to_cart" data-product-type="{{$product->product_type}}" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
-                                        @elseif($product->product_type == 'variable')
-                                            <button type="button" style="padding: 3px 5px;" class="btn btn-primary varient_add_to_cart" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
-                                        @endif
-                                    
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                <div class="pos_pagination_area" id="">
-                    <div class="pos_pagination justify-content-center d-flex mt-4"> {{$products->links()}}</div>
-                </div>
+				<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+					<li class="nav-item" role="presentation">
+						<button class="nav-link active" id="pills-profile-tab" data-toggle="pill" data-target="#pills-profile" type="button" role="tab" aria-controls="pills-profile" aria-selected="true">Top Selling</button>
+					</li>
+                    <li class="nav-item ml-1" role="presentation">
+						<button class="nav-link " id="pills-home-tab" data-toggle="pill" data-target="#pills-home" type="button" role="tab" aria-controls="pills-home" aria-selected="false">All Products</button>
+					</li>
+				</ul>
+				<div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+						<div class="row" id="">
+							@foreach($top_selling_products as $product)
+								<div class="col-sm-6 col-12 col-lg-4 col-xl-4 mb-0 p-1">
+									<div class="card mb-0">
+										<div class="card-body">
+											<div class="card-img-actions">
+												<img src="{{'/media/thumbnail/'.$product->default_image}}" class="card-img img-fluid" width="96" height="350" alt="">
+											</div>
+										</div>
+										<div class="card-body bg-light text-center details_card">
+											<div class="details_section">
+												<h6 class="font-weight-semibold mb-0">
+													<a href="#" class="text-primary mb-0 productViewBtn" id="{{ $product->id}}" data-abc="true">{{$product->title}}</a>
+												</h6>
+												@if($product->product_type != 'variable')
+													<p class="mb-0" >SKU: {{$product->sku}}</p>
+												@endif
+												<small class="text-danger" >Seller: {{ $product->name ?? '' }}</small>
+											</div>
+											<p class="mb-2 font-weight-semibold">{{ 'BDT '.\Helper::price_after_offer($product->id) }}</p>
+											
+												@if($product->product_type == 'simple')
+													<button type="button" style="padding: 3px 5px;" class="btn btn-primary simple_add_to_cart" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
+												@elseif($product->product_type == 'digital' || $product->product_type == 'service')
+													<button type="button" style="padding: 3px 5px;" class="btn btn-primary digital_add_to_cart" data-product-type="{{$product->product_type}}" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
+												@elseif($product->product_type == 'variable')
+													<button type="button" style="padding: 3px 5px;" class="btn btn-primary varient_add_to_cart" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
+												@endif
+											
+										</div>
+									</div>
+								</div>
+							@endforeach
+						</div>
+						<div class="pos_pagination_area" id="">
+							<div class="pos_pagination justify-content-center d-flex mt-4"> {{$top_selling_products->links()}}</div>
+						</div>
+					</div>
+					<div class="tab-pane fade " id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+						<div class="row" id="product_list_area">
+							@foreach($products as $product)
+								<div class="col-sm-6 col-12 col-lg-4 col-xl-4 mb-0 p-1">
+									<div class="card mb-0">
+										<div class="card-body">
+											<div class="card-img-actions">
+												<img src="{{'/media/thumbnail/'.$product->default_image}}" class="card-img img-fluid" width="96" height="350" alt="">
+											</div>
+										</div>
+										<div class="card-body bg-light text-center details_card">
+											<div class="details_section">
+												<h6 class="font-weight-semibold mb-0">
+													<a href="#" class="text-primary mb-0 productViewBtn" id="{{ $product->id}}" data-abc="true">{{$product->title}}</a>
+												</h6>
+												@if($product->product_type != 'variable')
+													<p class="mb-0" >SKU: {{$product->sku}}</p>
+												@endif
+												<small class="text-danger" >Seller: {{ $product->seller->shopinfo->name ?? '' }}</small>
+											</div>
+											<p class="mb-2 font-weight-semibold">{{ 'BDT '.\Helper::price_after_offer($product->id) }}</p>
+											
+												@if($product->product_type == 'simple')
+													<button type="button" style="padding: 3px 5px;" class="btn btn-primary simple_add_to_cart" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
+												@elseif($product->product_type == 'digital' || $product->product_type == 'service')
+													<button type="button" style="padding: 3px 5px;" class="btn btn-primary digital_add_to_cart" data-product-type="{{$product->product_type}}" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
+												@elseif($product->product_type == 'variable')
+													<button type="button" style="padding: 3px 5px;" class="btn btn-primary varient_add_to_cart" data-product-id="{{$product->id}}"><i class="mdi mdi-cart mr-1"></i> Add to cart</button>
+												@endif
+											
+										</div>
+									</div>
+								</div>
+							@endforeach
+						</div>
+						<div class="pos_pagination_area" id="">
+							<div class="pos_pagination justify-content-center d-flex mt-4"> {{$products->links()}}</div>
+						</div>
+					</div>
+					
+				</div>
             </div>
 
             <div class="col-md-6 col-sm-12">
@@ -155,7 +205,7 @@
                     </div>
                     <div class="history-elements">
                         <div>
-                            <span>Discount: <i class="mdi mdi-plus plus-icone" id="discount_modal_btn"></i></span>
+                            <span>Other Discount: <i class="mdi mdi-plus plus-icone" id="discount_modal_btn"></i></span>
                         </div>
                         <div>
                             BDT <span id="discount">0</span>
@@ -213,6 +263,86 @@
 @push('footer')
 {{-- <script src="{{ asset('backend/assets/js/pos.js')}}"></script> --}}
 <script type="text/javascript">
+    function getCustomerList() {
+        let user =  localStorage.getItem("current_user_id");
+        jQuery.ajax({
+            type: "GET",
+            url: "{{ route('admin.pos.get.customers') }}",
+            data: {current_user:  user},
+            dataType: 'html',
+            success: function (response) {
+                jQuery('#select_user').html('<option value="-1">-- Select Customer --</option>' + response);
+                jQuery("#select_user").selectpicker('refresh');
+                updateUIWithUser(localStorage.getItem("current_user_id"));
+            },
+            error: function (xhr, textStatus, errorThrown) {
+                // Handle error if needed
+                console.error("Error fetching customer list:", errorThrown);
+            }
+        });
+    }
+    // Call getCustomerList initially
+    getCustomerList();
+
+    function updateUIWithUser(userId) {
+        $('#select_user').val(userId).trigger('change');
+    }
+
+    // updateUIWithUser(localStorage.getItem("current_user_id"));
+    jQuery(document).on("click", "#customerAddModal button[type='submit']", function (e) {
+        e.preventDefault();
+        let name = $('#customerAddModal input[name="name"]').val();
+        let phone = $('#customerAddModal input[name="phone"]').val();
+        let email = $('#customerAddModal input[name="email"]').val();
+
+        let form = document.getElementById('customerAddForm');
+        var formData = new FormData(form);
+
+        $.ajax({
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            url: jQuery('#customerAddForm').attr('action'),
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                let current_user_id = response.user_id;
+                localStorage.setItem("current_user_id", current_user_id);
+                Swal.fire({
+                    icon: 'success',
+                    title: response.message,
+                    showConfirmButton: true,
+                    timer: 2000
+                });
+                localStorage.setItem("new_customer_name", name);
+                localStorage.setItem("new_customer_phone", phone);
+                localStorage.setItem("new_customer_email", email);
+                $('#customerAddModal').modal('hide');
+
+                $('#customerShippingAddressAddModal input[name="name"]').val(localStorage.getItem("new_customer_name"));
+                $('#customerShippingAddressAddModal input[name="email"]').val(localStorage.getItem("new_customer_email"));
+                $('#customerShippingAddressAddModal input[name="phone"]').val(localStorage.getItem("new_customer_phone"));
+
+                // updateUIWithUser(current_user_id);
+                getCustomerList();
+                getShippingAddress(localStorage.getItem("current_user_id"));
+            },
+            error: function (xhr) {
+                let errorMessage = '';
+                $.each(xhr.responseJSON.errors, function (key, value) {
+                    errorMessage += ('' + value + '<br>');
+                });
+                $('#customerAddModal .server_side_error').empty();
+                $('#customerAddModal .server_side_error').html('<div class="alert alert-danger" role="alert">' + errorMessage + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+            },
+        });
+    });
+
+   
+    $('#customerShippingAddressAddModal input[name="name"]').val(localStorage.getItem("new_customer_name"));
+    $('#customerShippingAddressAddModal input[name="email"]').val(localStorage.getItem("new_customer_email"));
+    $('#customerShippingAddressAddModal input[name="phone"]').val(localStorage.getItem("new_customer_phone"));
+
     $("#toggle_sidebar").trigger("click");
     // Search Product 
         jQuery(document).on("keyup", "#serach_product_field", function(){
@@ -230,6 +360,21 @@
                 });
             }
         });
+
+
+    // auto select and function 
+    // $("#shipping_address_id option:selected").prop("selected", false);
+    // getCart(localStorage.getItem("current_user_id"));
+    // // jQuery('#select_user').val(localStorage.getItem("current_user_id")).trigger('change');
+    getShippingAddress(localStorage.getItem("current_user_id"));
+    // if (localStorage.getItem("address_type") == 'pickpoint') {
+    //     jQuery("#pickpoint_address optgroup option:first").prop('selected',true);
+    // }else{
+    //     jQuery("#pickpoint_address option[value='"+localStorage.getItem("current_user_address_id")+"']").prop('selected',true);
+    // }
+    // jQuery('#payment_method').val(localStorage.getItem("current_user_payment_method")).trigger('change');
+
+
     // Pagination 
         jQuery(document).on('click','.dynamic_pagination .page-item .page-link',function(e){
             e.preventDefault();
@@ -900,20 +1045,33 @@
                     data : {customer_id: user_id},
                     success: function(response) {
                         jQuery('#customer_address_area').html(response);
-                        if (localStorage.getItem("address_type") == 'user_address') {
+                        // setTimeout(() => {
+                            if (response != '') {
                             if (localStorage.getItem("current_user_address_id") > 0) {
                                 jQuery("#customer_address_area option[value='"+localStorage.getItem("current_user_address_id")+"']").prop('selected',true);
                                 let address = jQuery('#customer_address_area').find('option:selected').val();
                                 localStorage.setItem("current_user_address_id", address);
+
+                                jQuery('#customer_address_area').val(address).trigger('change');
                             }else{
                                 jQuery("#customer_address_area optgroup option:first").prop('selected',true);
                                 let address = jQuery('#customer_address_area').find('option:selected').val();
-                                // console.log(address);
                                 localStorage.setItem("current_user_address_id", address);
+                                jQuery("#customer_address_area optgroup option:first").trigger('change');
                             }
                             
+                        }else{
+                            jQuery("#pickpoint_address optgroup option:first").prop('selected',true);
+                            let address = jQuery('#pickpoint_address').find('option:selected').val();
+                            localStorage.setItem("current_user_address_id", address);
+                            jQuery('#pickpoint_address').val(address).change();
+                            $('#shipping_address_id').val(24).trigger('change');
+                            $('.selectpicker').selectpicker('refresh');
                         }
-                        $('.selectpicker').selectpicker('refresh');
+                        
+                        // }, "1000");
+                        
+                        
                     }
                 });
             }
@@ -958,15 +1116,7 @@
                 localStorage.setItem("current_user_payment_method", payment_method);
             }
         });
-    // auto select and function 
-        $("#shipping_address_id option:selected").prop("selected", false);
-        getCart(localStorage.getItem("current_user_id"));
-        jQuery('#select_user').val(localStorage.getItem("current_user_id")).trigger('change');
-        getShippingAddress(localStorage.getItem("current_user_id"));
-        if (localStorage.getItem("address_type") == 'pickpoint') {
-            jQuery("#pickpoint_address option[value='"+localStorage.getItem("current_user_address_id")+"']").prop('selected',true);
-        }
-        jQuery('#payment_method').val(localStorage.getItem("current_user_payment_method")).trigger('change');
+        
         
     //Get Customer district
         jQuery(document).on("change", "#division_id", function(){
@@ -1043,9 +1193,8 @@
                             showConfirmButton: false,
                             timer: 1500
                         })
-                        setTimeout(function() {
-                            location.reload();
-                        }, 800);//
+                        getShippingAddress(localStorage.getItem("current_user_id"));
+                        $('#customerShippingAddressAddModal').modal('hide');
                     },
                     error: function (xhr) {
                         var errorMessage = '<div class="card bg-danger">\n' +
@@ -1066,6 +1215,7 @@
                })
             }
         });
+
         jQuery(document).on("click", ".order_with_cash", function(e){
             e.preventDefault();
             let paid_amount = Number(jQuery('#grand_total').text());
@@ -1166,6 +1316,18 @@
             jQuery('#hidden_payment_method').val(1);
             jQuery('#cashOnDeliveryModal').modal('show');
         })
+
+        jQuery(document).on("change", "#cashOnDeliveryModal #modal_paid_shiping_amount", function(e){
+            e.preventDefault();
+            let grand_total = Number(jQuery('#grand_total').text());
+            let shipping_amount = jQuery(this).val();
+            let due_amount = 0;
+            due_amount = grand_total + Number(shipping_amount);
+            jQuery('#hidden_payment_method').val(1);
+            jQuery('#cashOnDeliveryModal #modal_current_due').val(due_amount);
+
+        })
+    
         jQuery(document).on("change", "#cashOnDeliveryModal #modal_paid_amount", function(e){
             e.preventDefault();
             let grand_total = Number(jQuery('#grand_total').text());

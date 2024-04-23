@@ -42,17 +42,17 @@
                             <thead>
                                 <tr>
                                     <th>Order Id</th>
-                                    <th>Parent Order</th>
+                                    <th>Order From</th>
+                                    <th>Statistics</th>
                                     <th>Date</th>
                                     <th>User</th>
-                                    <th>Payment Id</th>
                                     <th>Shipping Name</th>
                                     <th>Shipping Phone</th>
-                                    <th>Payment Method</th>
                                     <th>Quantity</th>
                                     <th>Total Amount</th>
                                     <th>Paid Amount</th>
-                                    <th>Payment Status</th>
+                                    <th data-priority="2">Payment Status</th>
+                                    <th>Payment Method</th>
                                     <th class="text-center" data-priority="1">Action</th>
                                 </tr>
                             </thead>
@@ -122,9 +122,19 @@
                         name: 'id'
                     },
                     {
-                        data: 'parent_order_id',
+                        data: 'order_from',
+                        data: 'order_from',
+                        "className": "text-capitalize text-center"
+                    }, 
+                    {
+                        data: 'statistics',
                         searchable: false,
-                    },
+                        orderable: false,
+                    }, 
+                    // {
+                    //     data: 'parent_order_id',
+                    //     searchable: false,
+                    // }, 
                     {
                         data: 'created_at',
                         name: 'created_at'
@@ -133,9 +143,9 @@
                         data: 'user_id',
                         name: 'user.name'
                     },
-                    {
-                        data: 'payment_id'
-                    },
+                    // {
+                    //     data: 'payment_id'
+                    // },
                     {
                         data: 'shipping_name',
                         name: 'address.shipping_first_name'
@@ -144,10 +154,7 @@
                         data: 'shipping_phone',
                         name: 'address.shipping_phone'
                     },
-                    {
-                        data: 'payment_method',
-                        name: 'payment_method'
-                    },
+                    
                     {
                         data: 'product_qty',
                         name: 'product_qty'
@@ -163,6 +170,10 @@
                     {
                         data: 'status',
                         name: 'statuses.title'
+                    },
+                    {
+                        data: 'payment_method',
+                        name: 'payment_method'
                     },
                     {
                         data: 'action',

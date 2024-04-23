@@ -35,7 +35,7 @@
                                     <div class="col-sm-8">
                                         <select name="customer[]" class="form-control selectpicker" data-live-search="true"
                                             multiple required>
-                                            <option value="-1">All Customer</option>
+                                            <option value="-1">All Customer - {{ count($customers) }}</option>
                                             @foreach ($customers as $item)
                                                 <option value="{{ $item->id }}">
                                                     {{ $item->name . ' - ' . $item->phone . ' - ' . $item->email }}</option>
@@ -84,7 +84,7 @@
                                             <div class="col-sm-6">
                                                 <div class="form-check form-check-flat font_small_11">
                                                     <label class="form-check-label">
-                                                        <input type="radio" name="gateway_option"
+                                                        <input type="radio" name="gateway_option" value="musking"
                                                             class="form-check-input">Musking<i class="input-helper"></i>
                                                     </label>
                                                 </div>
@@ -92,7 +92,7 @@
                                             <div class="col-sm-6">
                                                 <div class="form-check form-check-flat font_small_11">
                                                     <label class="form-check-label">
-                                                        <input type="radio" name="gateway_option" class="form-check-input"
+                                                        <input type="radio" value="nonmusking" name="gateway_option" class="form-check-input"
                                                             checked>Non Musking<i class="input-helper"></i>
                                                     </label>
                                                 </div>
@@ -134,7 +134,12 @@
                                     <label class="col-sm-2 col-form-label">Message <br> <small class="text-danger">You have
                                             to send message in Bengali language</small> </label>
                                     <div class="col-sm-10">
-                                        <textarea type="text" name="message_body" placeholder="Message Body" class="form-control "></textarea>
+                                        <textarea type="text" name="message_body" placeholder="Message Body" class="form-control sms_message_body"></textarea>
+                                        <div class="d-flex">
+                                            <label for="total-charecter" class="p-2 bg-secondary ">Total: <span>0</span></label>
+                                            <label for="total-parts" class="ml-1 mr-1 p-2 bg-secondary">Parts: <span>0</span></label>
+                                            <label for="total-remaining" class="p-2 bg-secondary">Remaining: <span>0</span></label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -169,6 +174,53 @@
                     jQuery('.email_item').show();
                 }
             });
+
+            jQuery(document).on('input', '.sms_message_body', function(){
+                let sms = jQuery(this).val();
+                let result = calculateSMSLength(sms);
+            console.log("Total Characters:", result.totalCharacters);
+            console.log("Total Parts:", result.totalParts);
+            console.log("Remaining Characters in Last Part:", result.remaining);
+                // let total = countCharacters(sms);
+                // let remaining = total > 71 ? 67 : 70; // Default remaining for Unicode
+                // let parts = 1;
+
+                // if (total > 160) {
+                //     parts = Math.ceil(total / 153);
+                //     remaining = total > 71 ? 67 - (total % 67) : 153 - (total % 153);
+                // }
+
+                jQuery('label[for="total-charecter"] span').text(result.totalCharacters);
+                jQuery('label[for="total-remaining"] span').text(result.remaining);
+                jQuery('label[for="total-parts"] span').text(result.totalParts);
+            });
+
+            function calculateSMSLength(message) {
+                let totalCharacters = message.length;
+                let gsmLimit = 160;
+                let unicodeLimit = 70;
+                let gsmPartLimit = 153;
+                let unicodePartLimit = 67;
+
+                let containsUnicode = false;
+                for (let i = 0; i < message.length; i++) {
+                    if (message.charCodeAt(i) > 127) { // Check for Unicode characters
+                        containsUnicode = true;
+                        break;
+                    }
+                }
+
+                let totalParts = Math.ceil(totalCharacters / (containsUnicode ? unicodeLimit : gsmLimit));
+                let remaining = containsUnicode ? unicodeLimit - (totalCharacters % unicodeLimit) : gsmLimit - (totalCharacters % gsmPartLimit);
+
+                return {
+                    totalCharacters: totalCharacters,
+                    totalParts: totalParts,
+                    remaining: remaining
+                };
+            }
+
+            
         </script>
     @endpush
 

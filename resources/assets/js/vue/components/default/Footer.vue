@@ -25,19 +25,26 @@
             <a :href="'tel:'+site_info.cnf_phone1" target="__blank"> <i class="fa fa-phone" aria-hidden="true"></i> <p class="m-0">{{$t('Call')}}</p> </a>
           </li>
         
-          <li> <i class="fa fa-user mobile-account-btn" aria-hidden="true"></i> <p class="m-0">{{$t('Account')}}</p></li>
+          <li> 
+            <span  v-if="logged_in_user">
+              <i class="fa fa-user mobile-account-btn" aria-hidden="true"></i> <p class="m-0">{{$t('Account')}}</p>
+            </span>
+             <span v-else>
+               <router-link :to="{name: 'sign-up'}"><i class="fa fa-user mobile-account-btn" aria-hidden="true"></i> <p class="m-0">{{$t('Account')}} </p> </router-link>
+             </span>
+          </li>
         </ul>
-        <div class="mobile-my-account">
+        <div class="mobile-my-account" v-if="logged_in_user">
 
-          <ul>
-            <span v-if="logged_in_user">
+          <ul >
+            <span >
               <li> <a @click.prevent="logout()">{{ $t('Logout') }}</a> </li>
               <li> <router-link :to="{name: 'myaccount'}">{{ $t('My Account') }}</router-link> </li>
             </span>
-            <span v-else>
+            <!-- <span v-else>
               <li> <router-link :to="{name: 'login'}"> {{ $t('Login') }} </router-link> </li>
               <li> <router-link :to="{name: 'sign-up'}"> {{ $t('Register') }} </router-link> </li>
-            </span>
+            </span> -->
           </ul>
         </div>
       </div>
@@ -76,7 +83,7 @@
         <div class="site-logo footer-logo">
 			    <router-link v-if="site_info.footer_logo" :to="{name: 'home'}"><img class="footer-logo-img" @error="imageLoadError" :src="baseurl+'/'+site_info.footer_logo" alt=""></router-link>
 			    <router-link v-else :to="{name: 'home'}"><img class="footer-logo-img" @error="imageLoadError" src="/assets/images/logo.png" alt=""></router-link>
-          <p class="pt-4">{{ site_info.cnf_appdesc }} </p>
+          <p>{{ site_info.cnf_appdesc }} </p>
 		      <p><img class="w-100" :src="baseurl+'/'+site_info.accepted_payment_image" alt="SSL Commerz logo"></p>
         </div>
       </div>
@@ -86,14 +93,14 @@
           <li>  <router-link  :to="{ name: 'pages', params: {slug: 'about-us' } }"> {{ $t('About Us') }} </router-link> </li>
           <!-- <li>  <router-link :to="{ name: 'career'}"> {{ $t('Career') }} </router-link> </li> -->
           <!-- <li><router-link :to="{name: 'blog'}"> {{ $t('Blog') }} </router-link> </li> -->
-          <li><router-link :to="{name: 'contact'}"> {{ $t('Contact Us') }} </router-link> </li>
+          <li><router-link :to="{name: 'contact'}"> {{ $t('Help Center') }} </router-link> </li>
           <!-- <li><router-link :to="{name: 'offer'}"> {{ $t('Offers') }} </router-link></li> -->
-          <li><router-link :to="{name: 'login'}">  {{ $t('Login') }} </router-link></li>
+          <li><router-link :to="{name: 'vendor'}">  {{ $t('Join As Seller') }} </router-link></li>
 
-          <!-- <li><router-link :to="{name: 'corporate'}">  {{ $t('Join As Corporate User') }} </router-link></li> -->
+          <li><router-link :to="{name: 'corporate'}">  {{ $t('Join As Corporate User') }} </router-link></li>
 
-          <!-- <li><a href="http://seller.kholabazaar.com.bd" target="__blank">{{ $t('Login as seller') }}</a></li> -->
-          <li><router-link :to="{name: 'voucher'}"> {{ $t('Voucher') }} </router-link></li>
+          <li><a href="http://seller.mabiyshop.com" target="__blank">{{ $t('Login as seller') }}</a></li>
+          <!-- <li><router-link :to="{name: 'voucher'}"> {{ $t('Voucher') }} </router-link></li> -->
         </ul>
       </div>
       <div class="col-md-4 footer-contact">
@@ -126,11 +133,9 @@
         <h4>{{ $t('Policies') }} </h4>
         <ul>
           <li v-if="site_info.privacy_policy">  <router-link  :to="{ name: 'pages', params: {slug: site_info.privacy_policy } }"> {{ $t('Privacy Policy') }} </router-link> </li>
-          <li v-if="site_info.return_policy">  <router-link  :to="{ name: 'pages', params: {slug: site_info.return_policy } }"> {{ $t('Return & Exchange Policy') }}  </router-link> </li>
-          <!-- <li v-if="site_info.warranty_policy">  <router-link  :to="{ name: 'pages', params: {slug: site_info.warranty_policy } }"> {{ $t('Warranty Policy') }}  </router-link> </li> -->
+          <li v-if="site_info.return_policy">  <router-link  :to="{ name: 'pages', params: {slug: site_info.return_policy } }"> {{ $t('Return Policy') }}  </router-link> </li>
+          <li v-if="site_info.warranty_policy">  <router-link  :to="{ name: 'pages', params: {slug: site_info.warranty_policy } }"> {{ $t('Warranty Policy') }}  </router-link> </li>
           <li v-if="site_info.terms_of_use">  <router-link :to="{ name: 'pages', params: {slug: site_info.terms_of_use } }"> {{ $t('Terms and Conditions') }} </router-link> </li>
-          <li v-if="site_info.payment_policy">  <router-link :to="{ name: 'pages', params: {slug: site_info.payment_policy } }"> {{ $t('Payment Policy') }} </router-link> </li>
-          <li v-if="site_info.other_policy">  <router-link :to="{ name: 'pages', params: {slug: site_info.other_policy } }"> {{ $t('Others Policy') }} </router-link> </li>
           
 
 
@@ -140,7 +145,7 @@
   </div>
 </section>
 
-<p class="text-center copy_text"><small>{{ site_info.copyright_text }} | Developed by <a class="text-white" href="https://vmsl.com.bd" target="_blank">VMSL</a> </small> </p>
+<p class="text-center copy_text"><small>{{ site_info.copyright_text }} | Developed by <a class="text-white" href="https://varclone.com" target="_blank">VARCLONE</a> </small> </p>
 
 </div>
 </template>
@@ -215,7 +220,7 @@ export default {
 			this.$store.dispatch('loadedNotifications');
 			this.$store.dispatch('loadedVoucher');
 			this.$store.dispatch('loadedUsableVoucher');
-      this.$router.push({name:'login'});
+      this.$router.push({name:'sign-up'});
     },
 		load_featured_product(){
 			axios.get(this.$baseUrl+'/api/v1/get-featured-product').then(response => {

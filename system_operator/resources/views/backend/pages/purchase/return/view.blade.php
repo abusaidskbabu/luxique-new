@@ -78,7 +78,7 @@
 	</div>
 	<div class="col-lg-12 text-center mt-2">
 		<p><strong>Return Note: </strong>{{$purchase->note ?? ''}}</p>
-        <p style="text-align: center;"><img src="data:image/png;base64, {{DNS1D::getBarcodePNG('KB'.date("y", strtotime($purchase->created_at)).$purchase->id, 'C39',5,10) }}" alt=""  width="150px" height="30px"></p>
+        <p style="text-align: center;"><img src="data:image/png;base64, {{DNS1D::getBarcodePNG('MS'.date("y", strtotime($purchase->created_at)).$purchase->id, 'C39',5,10) }}" alt=""  width="150px" height="30px"></p>
 	</div>
 </div>
 

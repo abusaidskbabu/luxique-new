@@ -376,7 +376,7 @@ class ReportsController extends Controller
 
         return Datatables::of($data)->addIndexColumn()
             ->addColumn('id', function ($row) use ($request) {
-                return 'KB' . date('y', strtotime($row->created_at)) . $row->id;
+                return 'MS' . date('y', strtotime($row->created_at)) . $row->id;
             })
 
             ->addColumn('order_date', function ($row) {
@@ -752,7 +752,7 @@ class ReportsController extends Controller
         return DataTables::of($data)->addIndexColumn()
 
             ->editColumn('order_id', function ($row) {
-                return 'KB' . date('y', strtotime($row->created_at)) . $row->id;
+                return 'MS' . date('y', strtotime($row->created_at)) . $row->id;
             })
 
             ->editColumn('created_at', function ($row) {
@@ -989,7 +989,7 @@ class ReportsController extends Controller
 
         return DataTables::of($data)->addIndexColumn()
             ->editColumn('id', function ($row) {
-                return 'KB' . date('y', strtotime($row->created_at)) . $row->id;
+                return 'MS' . date('y', strtotime($row->created_at)) . $row->id;
             })
             ->editColumn('created_at', function ($row) {
                 return Carbon::parse($row->created_at)->format('Y-m-d');
@@ -1473,7 +1473,7 @@ class ReportsController extends Controller
 
             ->addIndexColumn()
             ->editColumn('id', function ($row) {
-                return 'KB' . date('y', strtotime($row->created_at)) . $row->id;
+                return 'MS' . date('y', strtotime($row->created_at)) . $row->id;
             })
             ->editColumn('vat', function ($row) {
                 return \Helper::getDefaultCurrency()->currency_symbol . ' ' . $row->vat;

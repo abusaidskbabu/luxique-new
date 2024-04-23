@@ -63,21 +63,20 @@
                                             @php
                                                 $link = env('APP_FRONTEND') . '/flash-deal/' . $flash_deal->slug;
                                             @endphp
-                                            <a class=" copyBtn" href="#"
+                                            <a class="copyBtn" href="#"
                                                 onclick="myFunction('{{ $link }}')"><i
                                                     class="icon_btn text-info mdi mdi-content-copy"></i></a>
                                         @endif
 
                                         @if (Auth::user()->can('flash_deals.pushnotification'))
-                                            <a class=""
+                                            <a class="sendFlashNotificationBtn"
                                                 href="{{ route('admin.flash_deal.send.pushnotification', $flash_deal->id) }}"><i
                                                     class="icon_btn text-warning mdi mdi-bell-ring"></i></a>
                                         @endif
 
                                         @if (Auth::user()->can('flash_deals.sms'))
-                                            <a class="text-success"
-                                                href="{{ route('admin.flash_deal.send.sms', $flash_deal->id) }}"><i
-                                                    class="icon_btn text-default mdi mdi-message-processing"></i></a>
+                                            <a class="sendFlashSMSBtn text-success" data-id="{{ $flash_deal->id }}" href="{{ route('admin.flash_deal.send.sms', $flash_deal->id) }}"><i
+                                                    class=" icon_btn text-default mdi mdi-message-processing"></i></a>
                                         @endif
 
                                         @if (Auth::user()->can('flash_deals.delete'))
@@ -145,5 +144,41 @@
                 timer: 1500
             })
         }
+
+        jQuery(document).on("click", ".sendFlashSMSBtn", function(e){
+            e.preventDefault();
+            let url = jQuery(this).attr('href'); 
+            Swal.fire({
+                title: 'Are you sure to send sms to all users?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Send it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url; // Check if 'url' is defined
+                }
+            });
+        });
+
+        jQuery(document).on("click", ".sendFlashNotificationBtn", function(e){
+            e.preventDefault();
+            let url = jQuery(this).attr('href'); 
+            Swal.fire({
+                title: 'Are you sure to send notification to all users?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Send it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url; // Check if 'url' is defined
+                }
+            });
+        });
     </script>
 @endpush

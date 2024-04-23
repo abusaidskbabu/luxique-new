@@ -91,12 +91,12 @@ class OrdersController extends Controller
             })
 
             ->editColumn('id', function ($row) {
-                return 'KB' . date('y', strtotime($row->created_at)) . $row->id;
+                return 'MS' . date('y', strtotime($row->created_at)) . $row->id;
             })
 
             ->editColumn('parent_order_id', function ($row) {
                 if ($row->parent_order_id) {
-                    return 'KB' . date('y', strtotime($row->created_at)) . $row->parent_order_id;
+                    return 'MS' . date('y', strtotime($row->created_at)) . $row->parent_order_id;
                 } else {
                     return 'ONE TIME';
                 }
@@ -110,6 +110,14 @@ class OrdersController extends Controller
                 return $row->user->name;
             })
 
+            ->addColumn('statistics', function ($row) {
+                $number_of_order = User::number_of_order($row->user_id);
+                $number_of_order_complete = User::number_of_order_complete($row->user_id);
+
+                $html = '<span>No. of order: </span>'.$number_of_order.'</br>';
+                $html .= '<span>Completed: </span>'.$number_of_order_complete;
+                return $html;
+            })
 
             ->addColumn('shipping_name', function ($row) {
                 if ($row->is_pickpoint == 1) {
@@ -169,7 +177,7 @@ class OrdersController extends Controller
                 return $btn;
             })
 
-            ->rawColumns(['created_at', 'user_id', 'shipping_name', 'shipping_phone', 'product_qty', 'paid_amount', 'total_amount', 'status', 'action'])->make(true);
+            ->rawColumns(['created_at', 'statistics', 'user_id', 'shipping_name', 'shipping_phone', 'product_qty', 'paid_amount', 'total_amount', 'status', 'action'])->make(true);
     }
 
     public function getOrderPromotionalList($start_date, $end_date)
@@ -361,18 +369,24 @@ class OrdersController extends Controller
             $user = User::where('id', $order_details->user_id)->first();
             if ($user) {
                 $mobile = $user->phone;
-                $msg = 'আপনার আর্ডার আইডি #'. 'KB' . date('y', strtotime($order_details->created_at)) . ' এর একটি পন্য সফলভাবে বিতরণ করা হয়েছে । অনুগ্রহ করে পন্যটির বিষয়ে আপনার মতামত দিন !';
+
+                $ratting_link = env('APP_FRONTEND').'/order-details'.'/'.$order_details->order_id;
+
+				$final_message ='অর্ডার আইডি #'. 'MS' . date('y', strtotime($order_details->created_at)).$order_details->order_id. ' ডেলিভারি সম্পন্ন হয়েছে। এখানে ('.$ratting_link.') আপনার অভিমত জানাতে পারেন৷'; 
+
+				
+                // $msg = 'আপনার আর্ডার আইডি #'. 'MS' . date('y', strtotime($order_details->created_at)).$order_details->order_id. ' এর একটি পন্য সফলভাবে বিতরণ করা হয়েছে । অনুগ্রহ করে পন্যটির বিষয়ে আপনার মতামত দিন !';
                 if ($mobile) {
-                    \Helper::sendSms($mobile, $msg);
+                    \Helper::sendSmsNonMusking($mobile, $final_message);
                 }
 
                 $message = [
-                    'order_id' => 'KB'. date('y', strtotime($order_details->created_at)) . $order_details->order_id,
+                    'order_id' => 'MS'. date('y', strtotime($order_details->created_at)) . $order_details->order_id,
                     'type' => 'order',
-                    'message' => $msg,
+                    'message' => $final_message,
                 ];
 
-                \Helper::sendPushNotification($order_details->user_id, 1, 'Product Delivered Please Review', $msg, json_encode($message), null, null);
+                \Helper::sendPushNotification($order_details->user_id, 1, 'Product Delivered Please Review', $final_message, json_encode($message), null, null);
             }
         } elseif (Auth::user()->getRoleNames() != '["seller"]' && $status != 6) { //Matured to Pending Maturation
             $checkPendingMaturation = SellerAccountHistory::where('order_details_id', $order_details->id)->where('status', 2)->first();
@@ -386,13 +400,13 @@ class OrdersController extends Controller
             $user_id = Order::find($order_details->order_id)->user_id;
             $user = User::find($user_id);
             $message = [
-                'order_id' => 'KB'. date('y', strtotime($order_details->created_at)) .$order_details->order_id,
+                'order_id' => 'MS'. date('y', strtotime($order_details->created_at)) .$order_details->order_id,
                 'type' => 'order',
                 'message' => 'আপনার অর্ডার সফলভাবে আপডেট করা হয়েছে!',
             ];
 
             Helper::sendPushNotification($user_id, 1, 'Order Status', 'Order Status Changed!', json_encode($message), null, null);
-            Helper::sendSms($user->phone, 'আপনার অর্ডার সফলভাবে আপডেট করা হয়েছে! অর্ডার আইডি '.'KB' . date('y', strtotime($order_details->created_at)) . $order_details->order_id);
+            // Helper::sendSms($user->phone, 'আপনার অর্ডার সফলভাবে আপডেট করা হয়েছে! অর্ডার আইডি '.'MS' . date('y', strtotime($order_details->created_at)) . $order_details->order_id);
 
             //Send Push Notification to Seller
             Helper::sendPushNotification($order_details->seller_id, 2, 'Order Status', 'Order Status Changed!', json_encode($message), null, null);
@@ -655,7 +669,7 @@ class OrdersController extends Controller
 
         return DataTables::of($data)->addIndexColumn()
             ->editColumn('order_id', function ($row) {
-                return 'KB' . date('y', strtotime($row->created_at)) . $row->order_id;
+                return 'MS' . date('y', strtotime($row->created_at)) . $row->order_id;
             })
             ->addColumn('seller_pending_maturation_balance', function ($row) {
                 $seller_pending_maturation_balance = $row->sum('seller_amount');

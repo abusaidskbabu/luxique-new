@@ -49,6 +49,11 @@ use App\Models\CorporateRequests;
 use App\Models\CorporateRequestDetails;
 use App\Models\Coupon;
 use App\Models\LoyaltyPurchases;
+use App\Models\SellerAccountHistory;
+use App\Models\CourierCompany;
+use App\Models\SingleProductOffer;
+use App\Models\ProductMeta;
+use App\Models\Division;
 
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Support\Str;
@@ -253,6 +258,8 @@ class ApiController extends Controller
 							$insert_id = DB::table('carts')->insertGetId($data);
 							if ($insert_id) {
 								$cart['status'] = 1;
+								$cart['data'] = $data;
+								$cart['product'] = $product;
 								return response()->json($cart, 200);
 							} else {
 								$data['status'] = 0;
@@ -341,7 +348,7 @@ class ApiController extends Controller
 							$qty = $request->qty ? $request->qty : $already_in_cart->qty;
 							$availableOptions = \Helper::variable_product_stock($request->product_id, $qty, $variable_option);
 							if ($availableOptions) {
-								$productPrice = \Helper::price_after_offer($product->id) + $availableOptions['totalAdditional'];
+								$productPrice = \Helper::price_after_offer($product->id) + \Helper::getDiscountByAditionalPrice($product->special_price_type, $product->special_price, $availableOptions['totalAdditional']);
 								$data['price'] = $productPrice;
 								$data['discount'] = \Helper::discount_amount_by_IDS($product->id) * $qty;
 								// $data['variable_options'] = json_encode($variable_option);
@@ -376,7 +383,7 @@ class ApiController extends Controller
 
 								if ($availableOptions) {
 									//Product is available to add to cart
-									$productPrice = \Helper::price_after_offer($product->id) + $availableOptions['totalAdditional'];
+									$productPrice = \Helper::price_after_offer($product->id) + \Helper::getDiscountByAditionalPrice($product->special_price_type, $product->special_price, $availableOptions['totalAdditional']);
 									$data['price'] = $productPrice;
 									$data['discount'] = \Helper::discount_amount_by_IDS($product->id) * $qty;
 									$data['product_id'] = $product->id;
@@ -396,6 +403,8 @@ class ApiController extends Controller
 
 									if ($insert_id) {
 										$cart['status'] = 1;
+										$cart['data'] = $data;
+										$cart['product'] = $product;
 									} else {
 										$cart['status'] = 0;
 										$cart['message'] = 'Something went wrong. Please try again later!';
@@ -1310,6 +1319,7 @@ class ApiController extends Controller
 		$product->price_after_offer = \Helper::price_after_offer($product->id);
 		$product->price = $product->price;
 		$product->discount_available = \Helper::getDiscountDifferentPriceById($product->id);
+		$product->discount_amount = \Helper::getDiscountAmountById($product->id);
 
 
 
@@ -1775,20 +1785,39 @@ class ApiController extends Controller
 		}
 
 		try {
+
 			if (filter_var($request->phone, FILTER_VALIDATE_EMAIL)) {
 				if ($request->get('phone')) {
-					$credentials = ['email' => $request->get('phone'), 'password' => $request->get('password')];
+					if($request->get('otp_login') && $request->get('otp_login') == 1){
+						$credentials = ['email' => $request->get('phone'), 'last_otp' => $request->get('password')];
+					}else{
+						$credentials = ['email' => $request->get('phone'), 'password' => $request->get('password')];
+					}
 				}
 			} else {
 				if ($request->get('phone')) {
-					$credentials = ['phone' => $request->get('phone'), 'password' => $request->get('password')];
+					if($request->get('otp_login') && $request->get('otp_login') == 1){
+						$credentials = ['phone' => $request->get('phone'), 'last_otp' => $request->get('password')];
+					}else{
+						$credentials = ['phone' => $request->get('phone'), 'password' => $request->get('password')];
+					}
 				}
 			}
 
-			if (!$token = auth('customer-api')->attempt($credentials)) {
-				$data['message'] = 'Your email/phone or password does not match.';
-				$data['status'] = 2;
-				return response()->json($data, 200);
+			if($request->get('otp_login') && $request->get('otp_login') == 1){
+				$user = User::where('phone', $request->get('phone'))->first();
+
+				if (!$token = auth('customer-api')->login($user)) {
+					$data['message'] = 'Your email/phone or password does not match.';
+					$data['status'] = 2;
+					return response()->json($data, 200);
+				}
+			}else{
+				if (!$token = auth('customer-api')->attempt($credentials)) {
+					$data['message'] = 'Your email/phone or password does not match.';
+					$data['status'] = 2;
+					return response()->json($data, 200);
+				}
 			}
 		} catch (JWTException $e) {
 			//return response()->json(['msg' => 'Token creation failed!'], 404);
@@ -1891,34 +1920,65 @@ class ApiController extends Controller
 	//Register
 	public function userRegister(Request $request)
 	{
-		$validator = Validator::make($request->all(), [
-			'name' => 'required',
-			'phone' => 'required|unique:users,phone',
-			'email'    => 'email|nullable|unique:users,email',
-			'password' => 'required|min:6',
-			'password_confirmation' => 'required_with:password|same:password|min:6'
-		]);
-
-		if ($validator->fails()) {
-			$data['status'] = 0;
-			$data['message'] = $validator->errors();
+		if (empty($request->mobile_number) || empty($request->otp)) {
+			$data['status'] = 2;
+			$data['message'] = 'Please fill all required field!';
 			return response()->json($data, 200);
 		}
 
-		$user = DB::table('users')->insertGetId([
-			'name' => $request->name,
-			'phone' => $request->phone,
-			'email' => $request->email,
-			'password' => bcrypt($request->password),
-			'affiliate_referer' => $request->affiliate_referer ?? null,
-			'status' => 1,
-		]);
-		//$data['customer'] = User::where('id', $user)->first();
+		if ($this->verifyOTP($request->mobile_number, $request->otp) == 1) {
+			DB::table('otp')->where('otp_code', $request->otp)->update(['status' => 1]);
+		}else{
+			$data['status'] = 2;
+			$data['message'] = 'OTP is invalid or expired!';
+			return response()->json($data, 200);
+		}
+
+		if(filter_var($request->mobile_number, FILTER_VALIDATE_EMAIL)) {
+			$email = $request->mobile_number;
+		}
+
+		$existing_user = null;
+		$sign_up_user = null;
+		
+		if (DB::table('users')->where('email', $request->mobile_number)->exists()) {
+			$existing_user = DB::table('users')->where('email', $request->mobile_number)->first();
+
+		}elseif(DB::table('users')->where('phone', $request->mobile_number)->exists()){
+			$existing_user = DB::table('users')->where('phone', $request->mobile_number)->first();
+			// $data['status'] = 2;
+			// $data['message'] = 'This phone already been used!';
+			// return response()->json($data, 200);
+		}else{
+			$sign_up_user = DB::table('users')->insertGetId([
+				'name' => $request->mobile_number,
+				'phone' => $request->mobile_number,
+				'email' => $email ?? null,
+				'password' => bcrypt($request->otp),
+				'affiliate_referer' => $request->affiliate_referer ?? null,
+				'status' => 1,
+			]);
+		}
+
+		// $data['customer'] = User::where('id', $user->id)->first();
 		try {
-			if ($request->get('phone')) {
-				$credentials = ['phone' => $request->get('phone'), 'password' => $request->get('password')];
+			if(filter_var($request->mobile_number, FILTER_VALIDATE_EMAIL)) {
+				$credentials = ['email' => $request->mobile_number, 'password' => $request->get('otp')];
+			}else{
+				if ($request->get('mobile_number')) {
+					$credentials = ['phone' => $request->get('mobile_number'), 'password' => $request->get('otp')];
+				}
 			}
-			if (!$token = auth('customer-api')->attempt($credentials)) {
+
+			if($existing_user != null) {
+				$login_user = User::find($existing_user->id);
+			}else{
+				$login_user = User::find($sign_up_user);
+			}
+			
+
+
+			if (!$token = auth('customer-api')->login($login_user)) {
 				$data['message'] = 'Your email/phone or password does not match.';
 				$data['status'] = 2;
 				return response()->json($data, 200);
@@ -1929,10 +1989,38 @@ class ApiController extends Controller
 			$data['status'] = 2;
 			return response()->json($data, 200);
 		}
+
 		$user = auth('customer-api')->user();
 		if ($device_token = $request->device_token) {
 			DB::table('users')->where('id', $user->id)->update(['device_token' => $device_token]);
 		}
+		
+		if ($session_key = $request->session_key) {
+			DB::table('carts')->where('session_key', $session_key)->update(['user_id' => $user->id]);
+			DB::table('compares')->where('session_key', $session_key)->update(['user_id' => $user->id]);
+			DB::table('wishlists')->where('session_key', $session_key)->update(['user_id' => $user->id]);
+		}
+
+		//Send Push Notification 
+		$cartNumber = DB::table('carts')->where('user_id', $user->id)->count();
+
+		if ($cartNumber > 0) {
+			$message_body = 'You have ' . $cartNumber . ' item(s) in your cart. Please buy them before they run out of stock.';
+			$message = ['type' => 'cart', 'message' => $message_body,];
+			$title = $cartNumber . 'item(s) in your cart.';
+			\Helper::sendPushNotification($user->id, 1, $title, $message_body, json_encode($message));
+		}
+
+
+		
+		$total_order = Order::where('user_id', $user->id)->where('status', 6)->count();
+		$order_details = OrderDetails::where('user_id', $user->id)->get();
+		$total_spends = Order::where('user_id', $user->id)->sum('total_amount');
+		$loyalty_points = \Helper::UserLoyaltyPoits($user->id);
+		$user->total_order = $total_order;
+		$user->total_spends = $total_spends;
+		$user->loyalty_points = $loyalty_points;
+
 		return response()->json([
 			'status' => 1,
 			'customer' => $user,
@@ -2268,13 +2356,13 @@ class ApiController extends Controller
 		$validator = Validator::make(
 			$request->all(),
 			[
-				'shipping_first_name' => 'required',
-				'shipping_division' => 'required|numeric',
+				'shipping_first_name' => 'required|min:4',
+				// 'shipping_division' => 'required|numeric',
 				'shipping_district' => 'required|numeric',
 				'shipping_thana' => 'required|numeric',
-				// 'shipping_union' => 'required|numeric',
+				'shipping_union' => 'required|numeric',
 				// 'shipping_postcode' => 'required',
-				'shipping_phone' => 'required',
+				'shipping_phone' => 'required|min:11|max:11',
 				//'shipping_email' => 'required',
 				'shipping_address' => 'required|max:100',
 
@@ -2288,7 +2376,7 @@ class ApiController extends Controller
 				'shipping_division.numeric' => 'Please select any division',
 				'shipping_district.numeric' => 'Please select any district',
 				'shipping_thana.numeric' => 'Please select any Upazila/Thana',
-				// 'shipping_union.numeric' => 'Please select any Union/Area',
+				'shipping_union.numeric' => 'Please select any Union/Area',
 			]
 		);
 
@@ -2305,14 +2393,14 @@ class ApiController extends Controller
 		} else {
 			$address = new Addresses;
 		}
-
+		$district = DB::table('districts')->where('id', $request->shipping_district)->first();
 
 		$address->user_id = $user->id;
 		$address->shipping_first_name = $request->shipping_first_name;
 		$address->shipping_last_name =  null;
 		$address->shipping_address = $request->shipping_address;
 
-		$address->shipping_division = $request->shipping_division;
+		$address->shipping_division = $district->division_id;
 
 		$address->shipping_district = $request->shipping_district;
 		$address->shipping_thana = $request->shipping_thana;
@@ -2322,6 +2410,7 @@ class ApiController extends Controller
 		$address->shipping_email =  $request->shipping_email ?? null;
 		if ($request->address_id) {
 			$address->save();
+			\DB::table('users')->where('id', $user->id)->update(['default_address_id' => $address->id]);
 			$data['status'] = 1;
 			$data['message'] = 'Address updated successfully.';
 			return response()->json($data, 200);
@@ -3495,7 +3584,7 @@ class ApiController extends Controller
 						$shipping_cost = 0;
 						$shipping_cost_grocery = 0;
 
-						$address = Addresses::find($user->default_address_id); 
+						$address = Addresses::find($user->default_address_id) ??  Addresses::find(1); 
                         
 						$recipient_city = District::find($address->shipping_district)->city_id ?? ''; 
 						$recipient_zone = Upazila::find($address->shipping_thana)->zone_id ?? '';
@@ -3871,9 +3960,11 @@ class ApiController extends Controller
 			$partial_payment = $request->partial_payment;
 		}
 
+		$SellerWiseGroup = [];
+
 		if ($user) {
 			$validForGroceryShipping = false;
-			$userAddress = Addresses::find($user->default_address_id);
+			$userAddress = Addresses::where('id', $user->default_address_id)->where('is_deleted', 0)->first();
 
 			if ($user->default_pickpoint_address != 1) {
 				if (!$userAddress) {
@@ -4003,8 +4094,49 @@ class ApiController extends Controller
 						}
 					}
 				}
+
+				if ($cart->seller_id) {
+					$shop = ShopInfo::select('name', 'slug')->where('seller_id', $cart->seller_id)->first();
+					$cart->shop_name = $shop->name;
+					$cart->shop_slug = $shop->slug;
+				}
+
+				$SellerWiseGroup[$cart->seller_id]['shop_info'] = [
+					'shop_name' => $cart->shop_name,
+					'shop_slug' => $cart->shop_slug,
+					'seller_id' => $cart->seller_id,
+				];
+		
+				$SellerWiseGroup[$cart->seller_id]['items'][] = $cart;
 			}
 
+			$SellerWiseGroup = array_values($SellerWiseGroup);
+			$recipient_city = District::find($userAddress->shipping_district)->city_id ?? ''; 
+			$recipient_zone = Upazila::find($userAddress->shipping_thana)->zone_id ?? '';
+			foreach($SellerWiseGroup as $group){
+                    
+				$defult_seller = Admins::find(\Helper::getSettings('default_branch_id'));
+				$seller = Admins::find($group['shop_info']['seller_id']);
+				$store_id = $seller->pathao_store_id ?? $defult_seller->pathao_store_id; 
+				$item_type = 2;
+				$delivery_type = 48; 
+				$item_weight = 0;
+	
+				foreach($group['items'] as $single_item){
+					$product = Product::where('id', $single_item->product_id)->first();
+	
+					if((\Helper::convertProductWeightToKg($single_item->product_id) * $single_item->qty) >= 0.1){
+						$item_weight = $item_weight + (\Helper::convertProductWeightToKg($single_item->product_id) * $single_item->qty);
+					}else{
+						$item_weight = $item_weight + (0.1 * $single_item->qty);
+					}
+				}
+	
+				$calculate_price = \Helper::calculateShippingCost($store_id, $item_type, $delivery_type, $item_weight, $recipient_city, $recipient_zone);
+				if($calculate_price->type == 'success'){
+					$shipping_cost = $shipping_cost + ($calculate_price->data->price - $calculate_price->data->discount) + $calculate_price->data->additional_charge - $calculate_price->data->promo_discount;
+				}
+			}
 
 			//Coupon Validation
 			$coupon_amount = 0;
@@ -4111,7 +4243,7 @@ class ApiController extends Controller
 						// 		$totalShippingCost += $val * $single_item->qty;
 						// 	}
 						// }
-						$totalShippingCost = $request->shipping_cost;
+						$totalShippingCost = $shipping_cost;
 						$detailsData['shipping_cost'] = 0;
 					} else {
 						$detailsData['shipping_method'] = 'pick_point';
@@ -4256,11 +4388,11 @@ class ApiController extends Controller
 			foreach ($sellers_id_for_order as $key => $val) {
 				$seller = Admins::find($val);
 				\Helper::sendPushNotification($val, 2, 'Order Placed', 'Order placed successfully!', json_encode($message));
-				\Helper::sendSms($seller->phone, 'একটি নতুন অর্ডার সফলভাবে স্থাপন করা হয়েছে! অর্ডার আইডি হল  #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
+				\Helper::sendSmsNonMusking($seller->phone, 'একটি নতুন অর্ডার সফলভাবে স্থাপন করা হয়েছে! Order ID #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
 			}
 
 			// Customer
-			\Helper::sendSms($user->phone, 'অর্ডার সফলভাবে স্থাপন করা হয়েছে! আপনার অর্ডারের জন্য আপনাকে ধন্যবাদ. আপনার অর্ডার আইডি #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
+			\Helper::sendSmsNonMusking($user->phone, 'আপনার অর্ডার সফলভাবে স্থাপন করা হয়েছে! আপনার Order ID #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
 
 			//Delete Cart Data
 			DB::table('carts')->where('user_id', $user_id)->delete();
@@ -4779,10 +4911,11 @@ class ApiController extends Controller
 			//->with('meta')
 			->with('specification')
 			->paginate(18);
-
+		
 
 		if (count($data) > 0) {
 			foreach ($data as $product) {
+				
 				$product->price_after_offer = number_format((int)\Helper::price_after_offer($product->id), 0);
 				$product->price = number_format((int)$product->price, 0);
 				$product->offer_percentage = number_format((int)\Helper::offer_percentage_byID($product->id), 0);
@@ -5541,7 +5674,11 @@ class ApiController extends Controller
 	{
 		$html = [];
 		$division_id = $id;
-		$districts = District::where('division_id', $division_id)->orderBy('title', 'asc')->get();
+		if($id == 0){
+			$districts = District::orderBy('title', 'asc')->get();
+		}else{
+			$districts = District::where('division_id', $division_id)->orderBy('title', 'asc')->get();
+		}
 		foreach ($districts as $district) {
 			$html[] = [
 				'id' => $district->id,
@@ -6006,9 +6143,9 @@ class ApiController extends Controller
 		if (!$this->isOtpLimitExcceds($mobileNumber)) {
 
 			$otp = mt_rand(100000, 999999);
-			$msg = 'আপনার ওটিপি কোড হল ' . $otp . '। কোডটি ৫ মিনিটের পর আর ব্যবহার করা যাবে না। অনুগ্রহ করে আপনার ওটিপি অন্যদের সাথে শেয়ার করবেন না।';
+			$msg = 'আপনার OTP CODE:' . $otp . ' কোডটি ৫ মিনিট পর অকার্যকর হয়ে যাবে';
 
-			\Helper::sendSms($mobileNumber, $msg);
+			\Helper::sendSmsNonMusking($mobileNumber, $msg);
 
 			if ($request->server('HTTP_HOST') != '127.0.0.1:8000') {
 				if($user){
@@ -6016,9 +6153,62 @@ class ApiController extends Controller
 						$subject = 'ওটিপি কোড';
 						\Helper::sendEmail($user->email, $subject, $msg, 'default');
 					}
+
 				}
 			}
 
+			if ($request->otp_for_login && $request->otp_for_login == 1) {
+				$update_user = User::find($user->id);
+				$update_user->last_otp = $otp;
+				$update_user->save();
+			}
+
+			$dbData = [
+				'mobile_number' => $mobileNumber,
+				'otp_code'	=> $otp,
+				'created_at' => date('Y-m-d H:i:s'),
+				'updated_at' => date('Y-m-d H:i:s'),
+				'status'	=> 0,
+			];
+
+			$updated = DB::table('otp')->insert($dbData);  //Insert OTP
+			if ($updated) {
+				$data['status'] = 1;
+				$data['message'] = 'OTP has been generated successfully.';
+				return response()->json($data, 200);
+			}
+		} else {
+			$data['status'] = 0;
+			$data['message'] = 'Maximum OTP generation limit exceeds for today.';
+			return response()->json($data, 200);
+		}
+	}
+
+	public function generateOTPForSignup(Request $request)
+	{
+		$mobileNumber = $request->mobile_number;
+		$is_forgot_password = $request->is_forgot_password;
+
+		if (!$mobileNumber) {
+			$data['status'] = 0;
+			$data['message'] = 'Please provide email / mobile number to generate otp.';
+			return response()->json($data, 200);
+		}
+		
+		if (!$this->isOtpLimitExcceds($mobileNumber)) {
+
+			$otp = mt_rand(100000, 999999);
+			$msg = 'আপনার OTP CODE: ' . $otp . ' কোডটি ৫ মিনিট পর অকার্যকর হয়ে যাবে';
+
+			if(filter_var($mobileNumber, FILTER_VALIDATE_EMAIL)) {
+				if ($request->server('HTTP_HOST') != '127.0.0.1:8000') {
+					$subject = 'ওটিপি কোড';
+					\Helper::sendEmail($mobileNumber, $subject, $msg, 'default');
+				}
+			}else{
+				\Helper::sendSmsNonMusking($mobileNumber, $msg);
+			}
+			
 			$dbData = [
 				'mobile_number' => $mobileNumber,
 				'otp_code'	=> $otp,
@@ -6126,7 +6316,7 @@ class ApiController extends Controller
 					DB::table('otp')->where('otp_code', $otp_code)->update(['status' => 1]);
 
 					$msg = 'Your account has been created. Your temporary password is ' . $password . ' . Use this password to access your account.';
-					\Helper::sendsms($mobileNumber, $msg);
+					\Helper::sendSmsNonMusking($mobileNumber, $msg);
 
 					if ($session_key = $request->session_key) {
 						DB::table('carts')->where('session_key', $session_key)->update(['user_id' => $user->id]);
@@ -6163,7 +6353,7 @@ class ApiController extends Controller
 			$to_time = strtotime($currentTime);
 			$from_time = strtotime($otptime);
 			$muniteDiff =  round(abs($to_time - $from_time) / 60, 2);
-			if ($muniteDiff < 1) { //1 Min Validity
+			if ($muniteDiff < 5) { //1 Min Validity
 				$res = 1;
 			} else {
 				$res = 2;
@@ -7173,9 +7363,336 @@ class ApiController extends Controller
 	public function getAccessTocken(){
 		$array = \Helper::calculateShippingCost();
 		$data['data'] = $array->data->price;
-
-		
 		return response()->json($data, 200);
 	}
 
+	public function PathaoStatusWebhook(Request $request){
+		$merchant_order_id = substr($request->merchant_order_id, 4);
+		$order_status = $request->order_status;
+
+		if($request->order_status_slug == 'Picked'){
+			$status = 2;
+		}elseif($request->order_status_slug == 'Assigned_for_Delivery'){
+			$status = 9;
+		}else if ($request->order_status_slug == 'Delivered') {
+			$status = 10;
+		}elseif ($request->order_status_slug == 'Return') {
+			$status = 11;
+		}elseif ($request->order_status_slug == 'On_Hold') {
+			$status = 3;
+		}elseif ($request->order_status_slug == 'Pickup_Failed' || $request->order_status_slug == 'Pickup_Cancelled' || $request->order_status_slug == 'Delivery_Failed') {
+			$status = 5;
+		}
+
+		$order = Order::find($merchant_order_id);
+		if($status == 10){
+			$order->status = 6;
+			$order->paid_amount = $order->total_amount;
+			$order->save();
+		}else{
+			$order->status = 2;
+			$order->save();
+		}
+
+		if ($order) {
+			$order_details = OrderDetails::where('order_id', $order->id)->get();
+			if ($order_details) {
+				foreach($order_details as $details){
+					$product = Product::find($details->product_id);
+					// order log 
+					$oldStatus = \Helper::get_status_by_status_id($details->status)->title;
+        			$newStatus = \Helper::get_status_by_status_id($status)->title;
+
+					$additionalText = '';
+					$shippingCompany = CourierCompany::find(1);
+					$additionalText = '(Courier: ' . $shippingCompany->title ?? '' . ' , Tracking ID: ' . $request->consignment_id . ') ';
+					
+					$generated_text = 'Order delivery status for product ' . $product->title . ' (ID: ' . $details->product_id . ') has been changed from ' . $oldStatus . ' to ' . $newStatus . ' ' . $additionalText . 'by Pathao';
+					\Helper::setOrderLog($details->order_id, $details->id, $generated_text, 1, null);
+
+
+					// update order details 
+					$details->status = $status;
+					$details->shipping_company_id = 1 ?? null;
+					$details->tracking_id = $request->tracking_id ?? null;
+					$details->save();
+
+					$checkPendingMaturation = SellerAccountHistory::where('order_details_id', $details->id)->where('status', 2)->first();
+					if ($checkPendingMaturation) {
+						$checkPendingMaturation->status = 1;
+						$checkPendingMaturation->save();
+					}
+
+
+					//Send Push Notification to User
+					$user_id = Order::find($details->order_id)->user_id;
+					$user = User::find($user_id);
+					$message = [
+						'order_id' => 'MS'. date('y', strtotime($details->created_at)).$request->merchant_order_id,
+						'type' => 'order',
+						'message' => 'আপনার অর্ডার সফলভাবে আপডেট করা হয়েছে!',
+					];
+
+					\Helper::sendPushNotification($user_id, 1, 'Order Status', 'Order Status Changed!', json_encode($message), null, null);
+
+					//Send Push Notification to Seller
+					\Helper::sendPushNotification($details->seller_id, 2, 'Order Status', 'Order Status Changed!', json_encode($message), null, null);
+				}
+			}
+
+			if ($status == 10) {
+				foreach($order_details as $details){
+					$details->status = 6;
+					$details->save();
+				}
+				
+				$ratting_link = env('APP_FRONTEND').'/order-details'.'/'.$order->id;
+
+				$final_message ='অর্ডার আইডি '.'#'.$request->merchant_order_id.', ডেলিভারি সম্পন্ন হয়েছে। এখানে ('.$ratting_link.') আপনার অভিমত জানাতে পারেন৷'; 
+
+				\Helper::sendSmsNonMusking($user->phone, $final_message);
+			}
+
+			return 'success';
+		}
+		
+	}
+
+	public function getSingleProductOffersDetails($slug, Request $request){
+		$offer = SingleProductOffer::where('slug', $slug)->with('product')->first();
+		$custom_option = ProductMeta::where('product_id', $offer->product_id)->where('meta_key', 'custom_options')->first();
+		$offer->custom_option = unserialize($custom_option->meta_value ?? null);
+
+		$offer->division = Division::where('is_deleted', 0)->where('status', 1)->get();
+		$offer->price = \Helper::price_after_offer($offer->product_id);
+		$data['status'] = 1;
+
+		$related_opffers = SingleProductOffer::where('product_id', '<>', $offer->product_id)->with('product')->get();
+		foreach($related_opffers as $row){
+			$row->price = \Helper::price_after_offer($row->product_id);
+		}
+
+		$data['related_offers'] = $related_opffers;
+		$data['data'] = $offer;
+		return response()->json($data, 200);
+	}
+
+	public function getSingleProductShippingCost($city_id, $zone_id, $product_id, $qty){
+		$product = Product::where('id', $product_id)->first();
+		$recipient_city = District::find($city_id)->city_id ?? ''; 
+        $recipient_zone = Upazila::find($zone_id)->zone_id ?? '';
+
+		$defult_seller = Admins::find(\Helper::getSettings('default_branch_id'));
+        $seller = Admins::find($product->seller_id);
+		$store_id = $seller->pathao_store_id ?? $defult_seller->pathao_store_id; 
+		$item_type = 2;
+		$delivery_type = 48; 
+		$item_weight = 0;
+
+		if((\Helper::convertProductWeightToKg($product->id) * $qty) >= 0.1){
+			$item_weight = $item_weight + (\Helper::convertProductWeightToKg($product->id) * $qty);
+		}else{
+			$item_weight = $item_weight + (\Helper::convertProductWeightToKg($product->id) * $qty);
+		}
+
+		$calculate_price = \Helper::calculateShippingCost($store_id, $item_type, $delivery_type, ($item_weight <= 0.1) ? 0.1 : $item_weight, $recipient_city, $recipient_zone);
+		// return $calculate_price;
+		if($calculate_price->type == 'success'){
+			$shipping_cost = ($calculate_price->data->price - $calculate_price->data->discount) + $calculate_price->data->additional_charge - $calculate_price->data->promo_discount;
+		}
+
+		$data['status'] = 1;
+		$data['shipping_cost'] = $shipping_cost ?? 0;
+		return response()->json($data, 200);
+	}
+
+	public function getSingleProductOffersOrder(Request $request){
+		$validator = Validator::make($request->all(), [
+			'name' => 'required',
+			'phone' => 'required|min:11|max:11',
+			'otp' => 'required',
+			'quantity' => 'required',
+			'division' => 'required',
+			'district' => 'required',
+			'upazila' => 'required',
+			'union' => 'required',
+		]);
+
+		if ($validator->fails()) {
+			$data['status'] = 0;
+			$data['message'] = $validator->errors();
+			return response()->json($data, 200);
+		}
+
+		// if ($this->verifyOTP($request->phone, $request->otp) == 1) {
+		// 	DB::table('otp')->where('otp_code', $request->otp)->update(['status' => 1]);
+		// }else{
+		// 	$data['status'] = 0;
+		// 	$data['message'] = 'OTP is invalid or expired!';
+		// 	return response()->json($data, 200);
+		// }
+
+		if(filter_var($request->phone, FILTER_VALIDATE_EMAIL)) {
+			$email = $request->phone;
+		}
+
+		$existing_user = null;
+		$sign_up_user = null;
+		
+		if (DB::table('users')->where('email', $request->phone)->exists()) {
+			$existing_user = DB::table('users')->where('email', $request->phone)->first();
+		}elseif(DB::table('users')->where('phone', $request->phone)->exists()){
+			$existing_user = DB::table('users')->where('phone', $request->phone)->first();
+		}else{
+			$sign_up_user = DB::table('users')->insertGetId([
+				'name' => $request->name,
+				'phone' => $request->phone,
+				'email' => $email ?? null,
+				'password' => bcrypt($request->otp),
+				'affiliate_referer' => $request->affiliate_referer ?? null,
+				'status' => 1,
+			]);
+		}
+		
+		$user_id = $existing_user->id ?? $sign_up_user->id;
+		$user = $existing_user ?? $sign_up_user;
+
+		$address = new Addresses();
+		$address->user_id = $user_id;
+		$address->shipping_first_name = $request->name;
+		$address->shipping_last_name =  null;
+		$address->shipping_address = $request->address;
+		$address->shipping_division = $request->division;
+		$address->shipping_district = $request->district;
+		$address->shipping_thana = $request->upazila;
+		$address->shipping_union = $request->union;
+		$address->shipping_postcode = $request->shipping_postcode ?? null;
+		$address->shipping_phone = $request->phone;
+		$address->shipping_email =  $request->shipping_email ?? null;
+		$address->save();
+		\DB::table('users')->where('id', $user_id)->update(['default_address_id' => $address->id]);
+
+		$shippings = $this->getSingleProductShippingCost($request->district, $request->upazila, $request->product_id, $request->quantity);
+		// return response()->json($shippings->original, 200);
+
+		$product = Product::find($request->product_id);
+		$price = \Helper::price_after_offer($product->id);
+		$aditional_price = $request->aditional_price;
+		$shipping_cost = $shippings->original['shipping_cost'];
+		$total_amount = (($price + $aditional_price) * $request->quantity) + $shipping_cost;
+
+		$variable_option = $request->all();
+		unset($variable_option['name']);
+		unset($variable_option['phone']);
+		unset($variable_option['otp']);
+		unset($variable_option['division']);
+		unset($variable_option['district']);
+		unset($variable_option['upazila']);
+		unset($variable_option['union']);
+		unset($variable_option['address']);
+		unset($variable_option['seller_id']);
+		unset($variable_option['product_id']);
+		unset($variable_option['quantity']);
+		$variable_option = $variable_option['custom_option'];
+
+		$orderData['total_amount'] = $total_amount;
+		$orderData['paid_amount'] = 0;
+		$orderData['is_partial_payment'] = 0;
+		$orderData['order_from'] = $request->order_from ?? 'web';
+		$orderData['coupon_code'] = $coupon_code ?? null;
+		$orderData['coupon_amount'] = $coupon_amount ?? 0;
+		$orderData['voucher_code'] = $voucher_code ?? null;
+		$orderData['voucher_amount'] = $voucher_amount ?? 0;
+		$orderData['discount_amount'] = 0;
+		$orderData['payment_method'] = $request->payment_method ?? 'cash_on_delivery';
+		$orderData['pay_by'] = $request->paid_by ?? null;
+		$orderData['status'] = 1;
+		$orderData['vat'] = 0;
+		$orderData['user_id'] = $user_id;
+		$orderData['address_id'] = $address->id;
+		$orderData['is_pickpoint'] = 0;
+		$orderData['payment_id'] = uniqid();
+		$orderData['ip_address'] = request()->ip();
+		$orderData['note']    = $request->note ?? null;
+		$orderData['shipping_cost']    = $shipping_cost;
+		$orderData['total_packaging_cost']  = 0;
+		$orderData['total_security_charge'] = 0;
+		$order_id = DB::table('orders')->insertGetId($orderData);
+
+		$detailsData['user_id'] = $user_id;
+		$detailsData['order_id'] = $order_id;
+		$detailsData['product_id'] = $product->id;
+		$detailsData['product_sku'] = $product->sku;
+		$detailsData['vat'] = ($product->price * $product->vat)/100 * $request->quantity;
+		$detailsData['product_qty'] = $request->quantity;
+		$detailsData['base_price'] = $product->price ?? 0.00;
+		$detailsData['price'] = $price ?? 0.00;
+		$detailsData['discount'] = 0.00;
+		$detailsData['is_promotion'] = $product->is_promotion;
+		$detailsData['loyalty_point'] = $product->loyalty_point ?? 0;
+		$detailsData['shipping_method'] = 'cash_on_delivery';
+		$detailsData['shipping_cost'] = $shipping_cost;
+		$detailsData['product_options'] = json_encode($variable_option);
+		$detailsData['seller_id'] = $product->seller_id ?? null;
+		$orderData['payment_method'] = null;
+		$detailsData['packaging_cost'] = 0;
+		$detailsData['security_charge'] = 0;
+		$detailsData['status'] = 1;
+		
+		if ($orderDetailsId = DB::table('order_details')->insertGetId($detailsData)) {
+			
+			\Helper::update_product_quantity($product->id, $request->quantity, json_encode($variable_option), 'subtraction');
+			
+			//Set Seller Commission
+			\Helper::setSellerBalance($orderDetailsId);
+		} else {
+			$data['status'] = 0;
+			$data['message'] = 'Something went wrong.';
+			return response()->json($data, 200);
+		}
+
+		\Helper::customerBalanceDebit($user_id, $total_amount);
+
+		$invoice = DB::table('order_details')->where('order_id', $order_id)->get();
+		foreach ($invoice as $key => $item) {
+			$p = \Helper::get_product_by_id($item->product_id);
+			$item->image = $p->default_image ?? null;
+			$item->title = $p->title ?? null;
+			$item->slug  = $p->slug ?? null;
+		}
+
+		$in['total'] = $total_amount;
+		$in['sub_total'] = (($price + $aditional_price) * $request->quantity);
+		$in['discount_amount'] = 0;
+		$in['coupon_amount'] = 0;
+		$in['order_id'] = $order_id;
+		$in['products'] = $invoice;
+		$in['shipping_cost'] = $shipping_cost;
+
+		$data['status'] = 1;
+		$data['message'] = 'Order placed successfully.';
+		$data['invoice'] = $in;
+
+		$order = Order::find($order_id);
+
+		if ($request->server('HTTP_HOST') != '127.0.0.1:8000') {
+			if ($user->email) {
+				\Helper::sendEmail($user->email, 'Order Placed', $order, 'invoice');
+			}
+		}
+
+		//Send Push notifications
+		//Customer
+		$message = [
+			'order_id' =>  'MS' . date('y', strtotime(Carbon::now())) . $order_id,
+			'type' => 'order',
+			'message' => 'Order placed successfully!',
+		];
+
+		\Helper::sendSms($request->phone, 'অর্ডার সফলভাবে স্থাপন করা হয়েছে! আপনার অর্ডারের জন্য আপনাকে ধন্যবাদ. আপনার অর্ডার আইডি #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
+
+		$data['status'] = 1;
+		$data['message'] = 'Order placed successfully!';
+		return response()->json($data, 200);
+	}
 }

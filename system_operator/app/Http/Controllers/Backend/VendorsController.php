@@ -518,7 +518,7 @@ class VendorsController extends Controller
 
     return Datatables::of($data->get())->addIndexColumn()
       ->addColumn('id', function ($row) {
-        return 'KB' . date('y', strtotime($row->created_at)) . $row->id;
+        return 'MS' . date('y', strtotime($row->created_at)) . $row->id;
       })
 
       ->addColumn('order_date', function ($row) {

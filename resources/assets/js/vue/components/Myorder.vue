@@ -41,7 +41,7 @@
                             </thead>
                             <tbody>
                             <tr v-for="(order, index) in orders.data" :key="index">
-                                <td> KB{{order.created_at|prefix_year}}{{ order.id }} </td>
+                                <td> MS{{order.created_at|prefix_year}}{{ order.id }} </td>
                                 <td> {{order.payment_method}}</td>
                                 <td>BDT {{order.shipping_cost}}</td>
                                 <td>{{ order.created_at | formatDate }} </td>

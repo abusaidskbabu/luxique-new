@@ -15,10 +15,10 @@
             <div class="card-body formated_para">
                 <h4 class="card-title text-uppercase mb-4">Order Information</h4>
                 <hr>
-                <p><strong>Order ID: </strong> KB{{ date('y', strtotime($order->created_at)) }}{{ $order->id }}</p>
+                <p><strong>Order ID: </strong> MS{{ date('y', strtotime($order->created_at)) }}{{ $order->id }}</p>
                 @if ($order->parent_order_id)
                     <p><strong>Parent Order ID: </strong> <a
-                            href="/admin/orders/view/{{ $order->parent_order_id }}">KB{{ date('y', strtotime($order->created_at)) }}{{ $order->parent_order_id }}</a>
+                            href="/admin/orders/view/{{ $order->parent_order_id }}">MS{{ date('y', strtotime($order->created_at)) }}{{ $order->parent_order_id }}</a>
                     </p>
                 @endif
                 <p><strong>Order Date: </strong> {{ $order->created_at->format('d M, Y, g:i a') }}</p>
@@ -74,6 +74,11 @@
                     </strong>{{ Helper::getDefaultCurrency()->currency_symbol . ' ' . $subtotal }}</strong>
                     {{-- </strong>{{ Helper::getDefaultCurrency()->currency_symbol . ' ' . (($order->paid_amount + $order->grocery_shipping_cost ?? 0)  - $order->shipping_cost) ?? '' }} --}}
                 </p>
+                @if ($order->discount_amount && $order->discount_amount > 0)
+                    <p><strong>Discount (-):
+                        </strong>{{ Helper::getDefaultCurrency()->currency_symbol . ' ' . $order->discount_amount ?? 0 }}
+                    </p>
+                @endif
 
                 @if ($order->vat && $order->vat > 0)
                     <p><strong>VAT (+):
@@ -308,8 +313,10 @@
                                 <b>{{ App\Models\ShopInfo::where('seller_id', $items[0]->seller_id)->first()->name }}</b>
                             </td>
                             <td class="text-right">
-                                <a href="#" onclick="printInvoice()" class="btn btn-info ml-auto"><i
-                                        class="mdi mdi-printer"></i> Print Invoice</a>
+                                <a href="{{ route('admin.order.sold.invoice.print', ['invoice', $order->id]) }}" target="_blang" class="btn btn-info ml-auto"><i
+                                    class="mdi mdi-printer"></i> Print Invoice</a> 
+                                {{-- <a href="#" onclick="printInvoice()" class="btn btn-info ml-auto"><i
+                                        class="mdi mdi-printer"></i> Print Invoice</a> --}}
                             </td>
                         </tr>
                         @foreach ($items as $item)

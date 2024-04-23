@@ -26,7 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail, JWTSubject
      * @var array
      */
     protected $fillable = [
-        'firstname', 'lastname', 'email', 'phone', 'street_address', 'division_id', 'district_id', 'upazila_id', 'union_id', 'ip_address', 'avatar', 'remember_token', 'city', 'state', 'zip', 'fb_id', 'google_id'
+        'firstname', 'lastname', 'email', 'phone', 'last_otp', 'street_address', 'division_id', 'district_id', 'upazila_id', 'union_id', 'ip_address', 'avatar', 'remember_token', 'city', 'state', 'zip', 'fb_id', 'google_id'
     ];
 
     /**
@@ -67,33 +67,39 @@ class User extends Authenticatable implements MustVerifyEmail, JWTSubject
         return [];
     }
 
-    public function number_of_order($id)
+    public static function number_of_order($id)
     {
         $number_of_order = Order::Where('user_id', $id)->count();
         return $number_of_order;
     }
 
-    public function order_amount($id)
+    public static function number_of_order_complete($id)
+    {
+        $number_of_order = Order::Where('user_id', $id)->where('status', 6)->count();
+        return $number_of_order;
+    }
+
+    public static function order_amount($id)
     {
         return Order::Where('user_id', $id)->where('is_deleted', 0)->sum('paid_amount');
     }
 
-    public function order_paid_amount($id)
+    public static function order_paid_amount($id)
     {
         return Order::Where('user_id', $id)->where('status', 6)->where('is_deleted', 0)->sum('paid_amount');
     }
 
-    public function order_pending_amount($id)
+    public static function order_pending_amount($id)
     {
         return Order::Where('user_id', $id)->where('status', '!=', 6)->where('is_deleted', 0)->sum('paid_amount');
     }
 
-    public function loyalty_point($id)
+    public static function loyalty_point($id)
     {
         return OrderDetails::Where('user_id', $id)->where('status', 6)->sum('loyalty_point');
     }
 
-    public function product_return($id)
+    public static function product_return($id)
     {
         return ReturnRequest::Where('user_id', $id)->count();
     }

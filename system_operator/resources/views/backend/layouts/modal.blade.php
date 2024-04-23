@@ -11,7 +11,10 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form class="form-sample" method="post" action="{{ route('admin.pos.customer.create') }}"
+                    <div class="server_side_error">
+
+                    </div>
+                    <form class="form-sample" id="customerAddForm" method="post" action="{{ route('admin.pos.customer.create') }}"
                         enctype="multipart/form-data">
                         @csrf
                         <div class="row">

@@ -1,9 +1,11 @@
 <template>
+	
     <div>
+		<meta>
 		<span v-if="productfound">
-		<div v-if="loading">
+		<div v-if="loading" id="product_details_area">
 			
-			<section id="product-details" class="single-product-details">
+			<section id="product-details">
 				<div class="container">
 					<div class="row">
 						<div class="col-md-12">
@@ -12,7 +14,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="row details-container">
+					<div typeof="schema:Product" class="row details-container">
 						<div class="col-md-8 image-section">
 							<div class="row">
 								<div class="col-md-6">
@@ -24,14 +26,23 @@
 										</div>
 
 										<div class="zoom-show" :href="baseurl+'/'+singleProduct.default_image">
-											<img @error="imageLoadError" :src="baseurl+'/'+singleProduct.default_image" id="show-img" style="object-fit: contain;"/>
+											<img property="schema:image" @error="imageLoadError" :src="baseurl+'/'+singleProduct.default_image" id="show-img" style="object-fit: contain;"/>
 										</div>
 										<div class="small-img" >
 											<img @error="imageLoadError" src="/images/online_icon_right@2x.png" class="icon-left" alt="" id="prev-img" />
 											<div class="small-container">
 												<div id="small-img-roll">
 													<img @error="imageLoadError" :src="baseurl+'/'+singleProduct.default_image" class="show-small-img" alt="" />
-													<img v-if="gallery_images" @error="imageLoadError" v-for="(img, index) in gallery_images" :key="'Z'+index" :src="baseurl+'/'+img" class="show-small-img" alt="" />
+													<template v-if="gallery_images">
+														<img
+															v-for="(img, index) in gallery_images"
+															:key="'Z' + index"
+															:src="baseurl + '/' + img"
+															class="show-small-img"
+															alt=""
+															@error="imageLoadError"
+														/>
+													</template>
 
 													<img  v-if="singleProduct.video_link" :src="this.$frontendUrl+'/images/video.jpg'" class="show-small-img video" alt="video" />
 													
@@ -44,14 +55,14 @@
 
 								</div>
 								<div class="col-md-6 description-section">
-									<h4 class="mb-0">{{ singleProduct.title }}</h4>
+									<h4 property="schema:name" class="mb-0">{{ singleProduct.title }}</h4>
 									<small v-if="singleProduct.weight"> <b class="single_page_weight">weight: </b> {{ singleProduct.weight }} <span  v-if="singleProduct.weight_unit">{{ singleProduct.weight_unit }} </span> <br> </small>
 
 									<small class="text-danger" v-if="singleProduct.vat > 0">{{ singleProduct.vat }}% VAT Applicable <br></small>
 
 									 <small class="text-secondary"> <b>SKU: </b> <span class="single_page_sku"> <b v-if="singleProduct.sku" >{{ singleProduct.sku }}</b> </span>  </small>
 
-									<p><small>{{ singleProduct.short_description }}</small></p>
+									<p class="product_short_description"><small>{{ singleProduct.short_description }}</small></p>
 									<div class="star-rating title_rating">
 									<span :style="AllRating.average_percentage">  </span> 
 									</div> 
@@ -86,9 +97,9 @@
 									
 									<!-- Simple product start -->
 									<span v-if="singleProduct.product_type == 'simple'">
-										<div class="single-page-price">
+										<div typeof="schema:Offer"  class="single-page-price">
 
-											<div class="currect-price"><b>BDT {{  singleProduct.price_after_offer }}</b></div>
+											<div property="schema:price" class="currect-price"><b>BDT {{  singleProduct.price_after_offer }}</b></div>
 											<span v-if="singleProduct.special_price_type == 1">
 												<div class="single-old-price" v-if="parseInt(singleProduct.price_after_offer)  < parseInt(singleProduct.price)">
 													<del>BDT {{ singleProduct.price }}</del>
@@ -119,7 +130,9 @@
 										</div>
 										<div class="row add_buy" v-if="singleProduct.in_stock > 0 && singleProduct.qty > 0">
 											<div class="col-md-6">
-												<button :class="'btn btn-primary addToCart disabledbtn'+singleProduct.id"  @click="addToCart(singleProduct.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }}</button>
+												<button :id="'buyNowBtn'" :class="'mb-1 btn buy_now single_product_buynow_button buynowdisabledbtn'+singleProduct.id"  @click="buyNow(singleProduct.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Buy Now') }}</button>
+												<button :id="'addToCartBtn'" :class="'btn btn-primary addToCart single_product_addtocart_button disabledbtn'+singleProduct.id"  @click="addToCart(singleProduct.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }}</button>
+												
 											</div>
 										</div>
 										<div class="row out_of_stock_single_page" v-else>
@@ -137,15 +150,15 @@
 									
 				
 									<!-- variable product start -->
-									<div v-if="singleProduct.product_type == 'variable'" id="variable_product" class="variable_product_single_page">
-									<form ref="variable_form" id="variable_form" @submit.prevent="variableAddToCart(singleProduct.id)" class="mb-5">
-										<div class="single-page-price">
-											<div class="calculated_price" :data-calculated-price="Number(calculated_price)"><b>BDT <span class="price_text">{{ Number(calculated_price) }}</span></b></div>
-											<div class="single-old-price" v-if="calculated_price < singleProduct.price"><del>BDT  {{ singleProduct.price }}</del> <span v-if="discount_Percentage" class="discout_percentage">{{ discount_Percentage }}%</span></div>
+									<div v-if="singleProduct.product_type == 'variable'" id="variable_product">
+									<form ref="variable_form" id="variable_form" @submit.prevent="variableAddToCart(singleProduct.id)" >
+										<div typeof="schema:Offer"  class="single-page-price">
+											<div property="schema:price" class="calculated_price"  :data-calculated-price="Number(calculated_price)" :data-discount-available="singleProduct.discount_available" :data-single-old-price="singleProduct.price" :data-discount-type="singleProduct.special_price_type" :data-discount-price="singleProduct.special_price"><b>BDT <span class="price_text" >{{ Number(calculated_price) }}</span></b></div>
+											<div class="single-old-price"  v-if="calculated_price < singleProduct.price" ><del>BDT  {{ singleProduct.price }}</del> <span v-if="discount_Percentage" class="discout_percentage">{{ discount_Percentage }}%</span></div>
 											<input type="hidden" class="variable_sku" name="variable_sku"></input>
 										</div>
 										<div class="row">
-											<div class="col-md-12 productSize">
+											<div class="col-sm-6 productSize">
 												<span v-for="(metas, index) in singleProduct.meta" :key="'A'+index"> 
 													<span v-if="metas.meta_key == 'custom_options'">
 													
@@ -157,25 +170,25 @@
 																		
 																		<div class="variant_title"> 
 																			<b>{{ val.title }} <b v-if="val.is_required == '1'" class="is_required">*</b>: </b>
-																			<span :class="'selectedValue'+singleProduct.id"></span>
-																			<input type="hidden" data-additional-price="0" data-additional-qty="-1" :class="'variant_input_every variant_input'+singleProduct.id" :data-productid="singleProduct.id" :name="val.title">
+																			<span class="selectedValue"></span>
+																			<input type="hidden" data-additional-price="0" data-additional-qty="-1" class="variant_input" :name="val.title">
 																		</div>
 
 																		<ul>
-																			<li v-for="(option, index) in val.value" :key="'C'+index" v-if="option.qty > 0"> 
+																			<li v-for="(option, index) in val.value" :key="'C'+index" > 
 																				
 																				<div class="radio_image">
 																					<span v-if="option.variant_image">
-																						<img @error="imageLoadError" :title="'Additional Price BDT '+ option.price" :class="'color_image option_selector_every option_selector'+singleProduct.id" :data-productid="singleProduct.id" :src="baseurl+'/'+option.variant_image" :data-price="option.price" 
+																						<img @error="imageLoadError" :title="'Additional Price BDT '+ option.price" class="color_image option_selector" :src="baseurl+'/'+option.variant_image" :data-price="option.price" 
 																						:data-variable-sku="option.sku" 
-																						:data-variable-qty="option.qty" 
+																						:data-variable-qty="singleProduct.qty" 
 																						:data-title="option.title" 
 																						:data-sku="option.sku"/>
 																					</span>
 																					<span 
 																					:data-price="option.price" 
 																					:data-variable-sku="option.sku" 
-																					:data-variable-qty="option.qty"  
+																					:data-variable-qty="singleProduct.qty"  
 																					:data-title="option.title" 
 																					:title="'Additional Price BDT '+ option.price" class="option_selector radio_select" v-else>
 																						{{ option.title }}  <span class="radio_select_price"> (+BDT {{ option.price }}) </span>
@@ -190,20 +203,21 @@
 																	<div class="variant_title"> 
 																		<b>{{ val.title }}: </b> 
 																		<span class="selectedValue"></span>
-																		<input type="hidden" data-additional-price="0" data-additional-qty="-1" :class="'variant_input_every variant_input'+singleProduct.id" :data-productid="singleProduct.id" :name="val.title">
+																		<input type="hidden" data-additional-price="0" data-additional-qty="-1" class="variant_input" :name="val.title">
 																	</div>
 																	
 																	
-																	<select :class="'form-control variant_dropdwon_every variant_dropdwon'+singleProduct.id" :data-productid="singleProduct.id">
+																	<select class="form-control variant_dropdwon">
 																		<option value="0" disabled selected>-Select {{val.title}}-</option>
 																		
-																		<option v-for="(option, index) in val.value" v-if="option.qty > 0"
+																		<option v-for="(option, index) in val.value" 
 																			:value="option.title" 
-																			:data-variable-qty="option.qty"
+																			:data-variable-qty="singleProduct.qty"
 																			:data-variable-sku="option.sku"
 																			:data-dropdownprice="option.price" 
+																			:data-src="baseurl+'/'+option.variant_image"
 																			:key="'D'+index">
-																			{{ option.title+' (+BDT '+option.price+')' }} 
+																			{{ option.title }} 
 																		</option>
 																	</select>
 																</div>
@@ -215,7 +229,7 @@
 												</span>
 											</div>
 											<!--Quantity-->
-											<div class="col-md-12 quantity_grid" v-if="calculated_in_stock">
+											<div class="col-sm-6 quantity_grid" v-if="singleProduct.in_stock > 0 && singleProduct.qty > 0">
 												<ul class="quantity">
 													<li>{{ $t('Quantity') }}:</li>
 												</ul>
@@ -248,11 +262,11 @@
 
 											<!--Quantity-->
 										</div>
-										<div class="row add_buy add_buy_variable" v-if="calculated_in_stock">
+										<div class="row add_buy add_buy_variable" v-if="singleProduct.in_stock > 0 && singleProduct.qty > 0">
 											<div class="col-md-6">
 												<input type="hidden" name="product_id" :value="singleProduct.id">
-												
-												<button type="button" id="variable_addtocart_button" :class="'btn btn-primary variable_disabled_btn addToCart disabledbtn'+singleProduct.id" disabled> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }}</button>
+												<button type="button" :id="'addToCartBtn'" :class="'btn btn-primary variable_disabled_btn single_product_addtocart_button addToCart disabledbtn'+singleProduct.id" disabled> <i class="fa fa-shopping-basket"></i> {{ $t('Buy Now') }}</button>
+												<!-- <button type="button" :id="'buyNowBtn'" :class="'btn btn-primary buy_now variable_disabled_btn buyNowBtn buynowdisabledbtn'+singleProduct.id" disabled> <i class="fa fa-shopping-basket"></i> {{ $t('Buy Now') }}</button> -->
 											</div>
 										</div>
 									
@@ -357,12 +371,14 @@
 
 										<div class="row add_buy" v-if="singleProduct.in_stock > 0 && singleProduct.qty > 0">
 											<div class="col-md-6">
-												<button v-if="singleProduct.product_type == 'digital'" :class="'btn btn-primary addToCart disabledbtn'+singleProduct.id" @click.prevent="digitaladdToCart(singleProduct.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }} </button>
-												<button v-else :class="'btn btn-primary addToCart disabledbtn'+singleProduct.id" @click.prevent="digitaladdToCart(singleProduct.id,'service')"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }} </button>
+												<button  v-if="singleProduct.product_type == 'digital'" :id="'addToCartBtn'" :class="'btn btn-primary addToCart disabledbtn'+singleProduct.id" @click.prevent="digitaladdToCart(singleProduct.id)"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }} </button>
+												<button v-else :id="'addToCartBtn'" :class="'btn btn-primary addToCart disabledbtn'+singleProduct.id" @click.prevent="digitaladdToCart(singleProduct.id,'service')"> <i class="fa fa-shopping-basket"></i> {{ $t('Add To Cart') }} </button>
 											</div>
 										</div>
 									</span>
 									<!-- Digital product end -->
+
+									<p class="product_short_description_on_mobile"><small>{{ singleProduct.short_description }}</small></p>
 								</div>
 							</div>
 						</div>
@@ -381,7 +397,13 @@
 									<div class="row" v-for="(address,index) in logged_in_user_address" :key="'F'+index" v-if="logged_in_user.default_address_id == address.id" >
 										<div class="col-1 col-sm-1 col-md-1"><i class="fa fa-map-marker" aria-hidden="true"></i></div>
 										<div class="col-8 col-sm-8 col-md-8" id="dynamicAddress"> 
-											{{  address.division.title +', '+address.district.title+', '+address.upazila.title+', '+ address.union.title+', '+address.shipping_address }}
+											<span v-if="address.division">{{address.division.title}}, </span> 
+											<span v-if="address.district">{{address.district.title}}, </span>
+											<span v-if="address.upazila">{{address.upazila.title}}, </span>
+											<span v-if="address.union">{{address.union.title}}, </span>
+											<span v-if="address.shipping_address">{{address.shipping_address}}</span>
+
+											<!-- {{  address.division.title +', '+address.district.title+', '+address.upazila.title+', '+ address.union.title+', '+address.shipping_address }} -->
 										</div>
 										<div class="col-3 col-sm-3 col-md-3 text-right"><a href="javascript:void(0)" class="change_location"> <i class="fa fa-pencil-square-o"></i> {{ $t('Change') }}</a></div>
 									</div>
@@ -447,21 +469,29 @@
 
 							<div v-if="logged_in_user_address">
 								<span v-if="singleProduct.product_type != 'digital'">
-								<div class="row deliveryOption cashOndelivery" v-for="(sp,index) in singleProduct.shipping_options" :key="'K'+index" v-if="sp !== null">
+								<div class="row deliveryOption cashOndelivery">
 									<div class="col-1 col-sm-1 col-md-1"><i class="fa fa-truck" aria-hidden="true"></i></div>
-									<div class="col-8 col-sm-8 col-md-8">
-										<span class="slectedShipping"> <span class="selectedShippingTitle text-capitalize">{{index.replace(/[#_]/g,' ')}}</span> </span> 
-										<p v-if="index == 'free_shipping'"><small  class="selectedShippingSubtitle">{{ $t('Package will be send within 7 to 15 days') }}</small></p> 
-										<p v-if="index == 'standard_shipping'"><small  class="selectedShippingSubtitle">{{ $t('Package will be send within 4 to 7 days') }}</small></p> 
-										<p v-if="index == 'express_shipping'"><small  class="selectedShippingSubtitle">{{ $t('Package will be send within 1 to 3 days') }}</small></p> 
+									<div class="col-8 col-sm-8 col-md-8"  v-for="(address,index) in logged_in_user_address" :key="'k'+index" v-if="logged_in_user.default_address_id == address.id">
+										<span class="slectedShipping"> <span class="selectedShippingTitle text-capitalize">Standard Shipping</span> </span> 
+										<p v-if="address.division.title == 'Dhaka'"><small  class="selectedShippingSubtitle">{{ $t('Package will be send within 24 - 48 hours') }}</small></p> 
+										<p v-else><small  class="selectedShippingSubtitle">{{ $t('Package will be send within 48 to 72 hours') }}</small></p> 
+										<!-- <p v-if="index == 'express_shipping'"><small  class="selectedShippingSubtitle">{{ $t('Package will be send within 1 to 3 days') }}</small></p>  -->
 									</div>
-									<div class="col-3 col-sm-3 col-md-3 text-right">
+									<!-- <div class="col-3 col-sm-3 col-md-3 text-right">
 										<span v-if="index == 'free_shipping'"> BDT 0</span>
 										<span v-else class="standardShippingConst">
 											<span v-if="sp != 0">BDT {{sp}}</span>
 											<span class="text-danger" v-else>{{ $t('Not Available') }}</span>
 										</span>
+									</div> -->
+								</div>
+								<div class="row deliveryOption cashOndelivery">
+									<div class="col-1 col-sm-1 col-md-1"><i class="fa fa-bangladeshi-taka-sign">৳</i></div>
+									<div class="col-8 col-sm-8 col-md-8">
+										<span class="slectedShipping"> <span class="selectedShippingTitle text-capitalize">Secure Payment</span> </span> 
+										<p ><small class="selectedShippingSubtitle">{{ $t('Cash on delivery and Online payment available') }}</small></p>
 									</div>
+									
 								</div>
 								</span>
 							</div>
@@ -557,8 +587,9 @@
 								<div class="col-4 col-sm-4 col-md-4">
 									<small>{{ $t('Shipped on Time') }}</small>
 									<br />
-									<b v-if="seller_ratings_info.shipped_on_time">{{ seller_ratings_info.shipped_on_time }}%</b>
-									<b v-else>0%</b>
+									<!-- <b v-if="seller_ratings_info.shipped_on_time">{{ seller_ratings_info.shipped_on_time }}%</b> -->
+									<!-- <b v-else>100%</b> -->
+									<b>100%</b>
 								</div>
 								<!-- <div class="col-4 col-sm-4 col-md-4">
 									<small>{{ $t('Chat Response Rate') }}</small>
@@ -747,7 +778,7 @@
 						
 							<!--Single comment start-->
 							<span v-if="SingleReview.data">
-							<div v-for="(review, index) in SingleReview.data" :key="'S'+index" class="review-box">
+							<div v-for="(review, index) in SingleReview.data" :key="'T'+index" class="review-box">
 								<div class="row">
 									<div class="col-md-12">
 										<div class="all-star">
@@ -788,12 +819,12 @@
 									</div>
 								</div>
 								<div class="row review_image">
-									<div v-for="(img, index) in review.image" :key="'AA'+index" class="col-1 col-sm-1 col-md-1 col-lg-1"> <span v-if="img != 'no-image'"> <img @error="imageLoadError" :src="baseurl+'/'+img"> </span> </div>
+									<div v-for="(img, index) in review.image" :key="'U'+index" class="col-1 col-sm-1 col-md-1 col-lg-1"> <span v-if="img != 'no-image'"> <img @error="imageLoadError" :src="baseurl+'/'+img"> </span> </div>
 								</div>
 
 								<!-- repl box start -->
 								<div v-if="review.replay.length > 0" class="row replay_box">
-									<div v-for="(replay, index) in review.replay" :key="index" class="review-box replay_box_review">
+									<div v-for="(replay, index) in review.replay" :key="'V'+index" class="review-box replay_box_review">
 										<div class="row">
 											<div class="col-md-12">
 												<div class="all-star">
@@ -811,7 +842,7 @@
 											</div>
 										</div>
 										<div class="row review_image">
-											<div v-for="(img, index) in replay.image" :key="'U'+index" class="col-1 col-sm-1 col-md-1 col-lg-1"> <span v-if="img != 'no-image'"> <img @error="imageLoadError" :src="baseurl+'/'+img"> </span> </div>
+											<div v-for="(img, index) in replay.image" :key="'W'+index" class="col-1 col-sm-1 col-md-1 col-lg-1"> <span v-if="img != 'no-image'"> <img @error="imageLoadError" :src="baseurl+'/'+img"> </span> </div>
 										</div>
 									</div>
 								</div>
@@ -830,7 +861,7 @@
 							
 							
 							<span v-else-if="temporaryComment">
-							<div v-for="(review, index) in temporaryData" :key="'V'+index" class="review-box">
+							<div v-for="(review, index) in temporaryData" :key="'X'+index" class="review-box">
 								<div class="row">
 									<div class="col-md-12">
 										<div class="all-star">
@@ -871,7 +902,7 @@
 									</div>
 								</div>
 								<div class="row review_image">
-									<div v-for="(img, index) in review.image" :key="'W'+index" class="col-1 col-sm-1 col-md-1 col-lg-1"> <span v-if="img"> {{ img }} <img @error="imageLoadError" :src="baseurl+'/'+img"> </span> </div>
+									<div v-for="(img, index) in review.image" :key="'Y'+index" class="col-1 col-sm-1 col-md-1 col-lg-1"> <span v-if="img"> {{ img }} <img @error="imageLoadError" :src="baseurl+'/'+img"> </span> </div>
 								</div>
 							</div>
 							</span>
@@ -901,15 +932,15 @@
 
 					<div class="swiper similerSwiper">
 						<div class="swiper-wrapper">
-							<div class="swiper-slide" data-swiper-autoplay="5000" v-for="(data, index) in product_simillar" :key="'X'+index" :data-length="index">
+							<div class="swiper-slide" data-swiper-autoplay="5000" v-for="(data, index) in product_simillar" :key="'XX'+index" :data-length="index">
 								<ProductGrid :data="data" ></ProductGrid>
 							</div>
 						</div>
 						<div class="swiper-pagination"></div>
 					</div> 
 
-					<div v-for="(data, index) in product_simillar" :key="'Y'+index" :data-length="index">
-						<QuickView :data="data" ></QuickView>
+					<div v-for="(data, index) in product_simillar" :key="'YY'+index" :data-length="index">
+						<!-- <QuickView :data="data" ></QuickView> -->
 					</div>
 						
 					</div>
@@ -1065,6 +1096,10 @@
 
     </div>
 </template>
+
+<script type="application/ld+json">
+	
+</script>
 
 <script>
     import axios from "axios";
@@ -1246,28 +1281,108 @@
 				let qty = jQuery('.qty').attr('data-qty');
 					axios.post(this.$baseUrl+'/api/v1/add-to-cart', {product_id:product_id,qty,session_key:session_key},axiosConfig ).then(response => {
 						if(response.data.status == 1){
-						this.$store.dispatch('loadedCart');
-						jQuery('.back_to_cart').trigger('click');
-						swal({
-							title: "Product added to cart Successfully.",
-							icon: "success",
-							timer: 3000
-						}).then(()=>{
+							this.$store.dispatch('loadedCart');
+							jQuery('.back_to_cart').trigger('click');
+							swal({
+								title: "Product added to cart Successfully.",
+								icon: "success",
+								timer: 3000
+							}).then(()=>{
+								$('.disabledbtn'+product_id).attr('disabled', false);
+								if(lang == 'bn'){
+									$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> যুক্ত করুন');
+								}else{
+									$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Add To Cart');
+								}
+							});
+							dataLayer.push({ ecommerce: null });
+							dataLayer.push({
+								event: "AddToCart",
+								ecommerce: {
+									currency: "BDT",
+									add: {                                // 'add' actionFieldObject measures.
+										products: [{                        //  adding a product to a shopping cart.
+											name: response.data.product.title,
+											id: response.data.product.id,
+											price: response.data.data.price,
+											brand: response.data.product.brand_title,
+											category: response.data.product.category_title,
+											variant: response.data.data.variable_options,
+											quantity: response.data.data.qty
+										}]
+									}
+								}
+							});
+						}else{
+							swal ( "Oops", response.data.message, "error");
 							$('.disabledbtn'+product_id).attr('disabled', false);
 							if(lang == 'bn'){
 								$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> যুক্ত করুন');
 							}else{
 								$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Add To Cart');
 							}
-						});
-						}else{
-						swal ( "Oops", response.data.message, "error");
-						$('.disabledbtn'+product_id).attr('disabled', false);
-						if(lang == 'bn'){
-							$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> যুক্ত করুন');
-						}else{
-							$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Add To Cart');
 						}
+					});
+			},
+			buyNow(product_id){
+				$('.buynowdisabledbtn'+product_id).attr('disabled', true);
+				$('.buynowdisabledbtn'+product_id).html('<span class="spinner-border spinner-border-sm"></span>');
+				let session_key = localStorage.getItem("session_key");
+				let token = localStorage.getItem("token");
+				let axiosConfig = {
+					headers: {
+					'Content-Type': 'application/json;charset=UTF-8',
+					"Access-Control-Allow-Origin": "*",
+					'Authorization': 'Bearer '+token
+					}
+				}
+
+				let lang = localStorage.getItem("lang");
+				let qty = jQuery('.qty').attr('data-qty');
+					axios.post(this.$baseUrl+'/api/v1/add-to-cart', {product_id:product_id,qty,session_key:session_key},axiosConfig ).then(response => {
+						if(response.data.status == 1){
+							this.$store.dispatch('loadedCart');
+							jQuery('.back_to_cart').trigger('click');
+							swal({
+								title: "Product added to cart Successfully.",
+								icon: "success",
+								timer: 3000
+							}).then(()=>{
+								$('.buynowdisabledbtn'+product_id).attr('disabled', true);
+								if(lang == 'bn'){
+									$('.buynowdisabledbtn'+product_id).html('এখন কিনুন');
+								}else{
+									$('.buynowdisabledbtn'+product_id).html('Buy Now');
+								}
+								jQuery('.show_checkout_section').trigger('click');
+								jQuery('.left_cart_icon').trigger('click');
+							});
+							dataLayer.push({ ecommerce: null });
+							dataLayer.push({
+								event: "AddToCart",
+								ecommerce: {
+									currency: "BDT",
+									add: {                                // 'add' actionFieldObject measures.
+										products: [{                        //  adding a product to a shopping cart.
+											name: response.data.product.title,
+											id: response.data.product.id,
+											price: response.data.data.price,
+											brand: response.data.product.brand_title,
+											category: response.data.product.category_title,
+											variant: response.data.data.variable_options,
+											quantity: response.data.data.qty
+										}]
+									}
+								}
+							});
+						}else{
+							swal ( "Oops", response.data.message, "error");
+							$('.disabledbtn'+product_id).attr('disabled', false);
+							if(lang == 'bn'){
+								$('.disabledbtn'+product_id).html('এখন কিনুন');
+							}else{
+								$('.disabledbtn'+product_id).html('Buy Now');
+							}
 						}
 					});
 			},
@@ -1300,7 +1415,27 @@
 						timer: 3000
 						}).then(()=>{
 							$('.disabledbtn'+product_id).attr('disabled', false);
-							$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Add To Cart');
+							$('.disabledbtn'+product_id).html('<i class="fa fa-shopping-basket"></i> Buy Now');
+							jQuery('.show_checkout_section').trigger('click');
+							jQuery('.left_cart_icon').trigger('click');
+						});
+						dataLayer.push({ ecommerce: null });
+						dataLayer.push({
+							event: "AddToCart",
+							ecommerce: {
+								currency: "BDT",
+								add: {                                // 'add' actionFieldObject measures.
+									products: [{                        //  adding a product to a shopping cart.
+										name: response.data.product.title,
+										id: response.data.product.id,
+										price: response.data.data.price,
+										brand: response.data.product.brand_title,
+										category: response.data.product.category_title,
+										variant: response.data.data.variable_options,
+										quantity: response.data.data.qty
+									}]
+								}
+							}
 						});
 					}else{
 						$('.disabledbtn'+product_id).attr('disabled', false);
@@ -1403,7 +1538,6 @@
 
 			},
 
-			
             load_single_product() {
 				let token = localStorage.getItem("token");
 				let axiosConfig = {
@@ -1474,14 +1608,58 @@
 								$('.show-small-img').first().trigger('click');
 							},500);
 						});
-					}
-					
-                });
 
+						dataLayer.push({ ecommerce: null });
+						dataLayer.push({
+						event: "view_item_list",
+						ecommerce: {
+							currency: "BDT",
+							value: this.calculated_price,
+							items: [
+								{
+									item_id: this.singleProduct.id,
+									item_name: this.singleProduct.title,
+									affiliation: "",
+									coupon: "",
+									discount: this.singleProduct.discount_Percentage,
+									index: 0,
+									item_brand: this.singleProduct.category_title,
+									item_category: this.singleProduct.brand_title,
+									item_list_id: "",
+									item_list_name: "",
+									item_variant: "",
+									location_id: "",
+									content_type: "product",
+									price: this.calculated_price,
+									quantity: this.singleProduct.qty
+								}
+							]
+						}
+					});
+					}
+					// setTimeout(function() {
+					// 	console.log(Number($('#variable_form .calculated_price').attr('data-calculated-price')));
+					// 	$('#variable_form .price_text').text('');
+					// 	// $('#variable_form .price_text').text(Number($('#variable_form .calculated_price').attr('data-calculated-price')));
+					// 	$('#variable_form .variant_dropdwon').prop('selectedIndex',1).trigger('change');;
+					// },1000);
+                });
 				const plugin = document.createElement("script");
 				plugin.setAttribute( "src",this.$frontendUrl+"/assets/js/parts/product.js");
 				plugin.async = true;
 				document.body.appendChild(plugin);
+				// fbq('track', 'PageView');
+
+				// fbq('track', 'PageView', {
+				// 	content_name: 'Really Fast Running Shoes', 
+				// 	content_category: 'Apparel & Accessories > Shoes',
+				// 	content_ids: ['1234'],
+				// 	content_type: 'product',
+				// 	value: 4.99,
+				// 	currency: 'USD' 
+				// });    
+
+				
             },
 			getComments(){
 				let that = this;
@@ -1633,10 +1811,6 @@
 		watch:{
 			$route(to, from){
 				$('#layer_1').hide();
-				$('.qty').text('1');
-				$('.qty').attr('data-qty', 1);
-				$('.qtyInput').val(1);
-				
 				this.load_single_product();
 				this.scrollToTop();
 				setTimeout(function() {
@@ -1708,32 +1882,8 @@
             this.baseurl = this.$baseUrl;
 			this.scrollToTop();
 			this.br();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+			
+			
         },
 		updated(){
 			let title = (this.singleProduct.title != undefined) ? this.singleProduct.title : '';

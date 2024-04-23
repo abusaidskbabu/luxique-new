@@ -110,7 +110,7 @@
                                 <div style="min-height: 240px !important" class="card">
                                     <div class="card-body pb-0">
                                         <ul>
-                                            <li> <b>{{ $t('Request ID') }}: </b> <span> KBC{{groupedQuatation.id}}</span>  </li>
+                                            <li> <b>{{ $t('Request ID') }}: </b> <span> MSC{{groupedQuatation.id}}</span>  </li>
                                             <li> <b>{{ $t('Request Date') }}: </b> <span> {{ groupedQuatation.created_at | formatDate }}</span> </li>
                                             <li> <b>{{ $t('Total Quantity') }}: </b> <span> {{ groupedQuatation.qty }}</span> </li>
                                             <li> <b>{{ $t('Total Price') }}: </b> <span> BDT {{ groupedQuatation.amount }}</span> </li>
@@ -269,7 +269,7 @@
                 <td style="width: 650px;">
                     <div class="row" style="display: flex; -ms-flex-wrap: wrap;flex-wrap: wrap;padding: 0!important;">
                         <div class="col-md-6" style="flex: 0 0 65%;max-width: 65%;position: relative;text-align: right!important;padding: 0!important;"> <span style="text-transform: uppercase;font-size: 20px;font-weight: 600;">Corporate Invoice</span>  </div>
-                        <div class="col-md-6" style="flex: 0 0 35%;max-width: 35%;position: relative;text-align: right!important;padding: 0!important;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: KBC{{groupedQuatation.id}}</span> </div>
+                        <div class="col-md-6" style="flex: 0 0 35%;max-width: 35%;position: relative;text-align: right!important;padding: 0!important;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: MSC{{groupedQuatation.id}}</span> </div>
                     </div>
                 </td>
             </tr>
@@ -502,7 +502,7 @@ export default {
             this.corporate_request_id = requeat_id;
 
             axios.get(this.$baseUrl + "/api/v1/get-single-quatation/"+requeat_id, axiosConfig).then((response) => {
-                axios.get("/api/barcode/"+'KBC'+response.data.groupedQuatation.id).then((response) => {
+                axios.get("/api/barcode/"+'MSC'+response.data.groupedQuatation.id).then((response) => {
                         this.barcode = response.data
                 });
                 this.single_order = response.data.quatation;

@@ -7,14 +7,23 @@
 	<section class="brand_banner">
 		<div class="container">
 			<div class="row">
-				<div class="col-md-12 pr-0">
-					<img :src="baseurl+'/'+sellerbanner" style="width: 100%;height: auto;" alt="Banner">
+				<div class="col-md-12">
+					<div class="brand_banner_bg" v-bind:style="{ 'background-image': 'url(' + baseurl+sellerbanner+ ')' }">
+						<div class="row">
+							<div class="col-md-4 brand_logo">
+								<img @error="imageLoadError" :src="thumbnailUrl+'/'+sellerLogo">
+							</div>
+							<div class="col-md-4"></div>
+							<div class="col-md-4"></div>
+						</div>
+					</div>
 				</div>
+		
 				<div class="col-md-12">
 					<div class="brand_page_nav brand_page_nav_shop">
 						<ul>
 							<li> <a href="javascript:void(0)"  data-tab-name="section_shop" class="triger_tab active" id="brand_all_product"> {{ $t('All Products') }} </a> </li>
-							<li> <a href="javascript:void(0)"  data-tab-name="profile_section" class="triger_tab" id="brand_profile">{{ SellerProfile.shopinfo.name }} {{ $t('Profile') }} </a> </li>
+							<li> <a href="javascript:void(0)"  data-tab-name="profile_section" class="triger_tab" id="brand_profile">{{ $t('Profile') }} </a> </li>
 						</ul>
 					</div>
 				</div>
@@ -581,13 +590,15 @@ export default {
 
             let formData = new FormData();
             formData.append('content', content); localStorage.setItem("serach_content", content);
+            formData.append('page', 1);
+            formData.append('upazila_id', localStorage.getItem('upazail_id'));
             formData.append('shop_slug', shop_slug); localStorage.setItem("shop_slug", shop_slug);
             formData.append('categories', categories); localStorage.setItem("serach_categories", categories);
             formData.append('brands', brands); localStorage.setItem("serach_brands", brands);
             formData.append('orederbyselect', $('.orederbyselect').val());  localStorage.setItem("serach_orederbyselect", $('.orederbyselect').val());
             formData.append('minprice', $('.minprice').val()); localStorage.setItem("serach_minprice", $('.minprice').val());
             formData.append('maxprice', $('.maxprice').val()); localStorage.setItem("serach_maxprice", $('.maxprice').val());
-			axios.post(this.$baseUrl+'/api/v1/get-search-product/'+"?page="+page, formData).then(response => {
+			axios.post(this.$baseUrl+'/api/v1/get-search-product', formData).then(response => {
 				this.searchProduct = response.data.products;
                 this.loading = true;
                 this.all_next_page_url = response.data.products.next_page_url;
@@ -623,13 +634,15 @@ export default {
             });
             let formData = new FormData();
             formData.append('content', content); localStorage.setItem("serach_content", content);
+            formData.append('page', page);
+            formData.append('upazila_id', localStorage.getItem('upazail_id'));
 			formData.append('shop_slug', shop_slug); localStorage.setItem("shop_slug", shop_slug);
             formData.append('categories', categories); localStorage.setItem("serach_categories", categories);
             formData.append('brands', brands); localStorage.setItem("serach_brands", brands);
             formData.append('orederbyselect', $('.orederbyselect').val());  localStorage.setItem("serach_orederbyselect", $('.orederbyselect').val());
             formData.append('minprice', $('.minprice').val()); localStorage.setItem("serach_minprice", $('.minprice').val());
             formData.append('maxprice', $('.maxprice').val()); localStorage.setItem("serach_maxprice", $('.maxprice').val());
-			await axios.post(this.$baseUrl+'/api/v1/get-search-product/'+"?page="+page, formData).then(response => {
+			await axios.post(this.$baseUrl+'/api/v1/get-search-product', formData).then(response => {
                 let c = response.data.products.data;
                 let that = this;
                 c.forEach(element => {
@@ -643,7 +656,6 @@ export default {
                     }
                 });
                 this.all_next_page_url = response.data.products.next_page_url;
-                this.all_prev_page_url = response.data.products.prev_page_url;
 			});
         },
 		imageLoadError(event){
@@ -654,7 +666,6 @@ export default {
 			axios.get(this.$baseUrl+'/api/v1/get-products-by-seller-slug/'+slug).then(response => {
 				this.ratings = response.data.ratings;
 				this.SellerProfile = response.data.profile;
-				// this.SellerProfile = response.data.profile.shop_info;
 				this.sellerLogo= response.data.profile.shopinfo.logo;
 				this.sellerbanner = '/'+response.data.profile.shopinfo.banner;
 			});
@@ -702,7 +713,7 @@ export default {
 		this.load_products_by_shop_slug();
 		this.baseurl = this.$baseUrl;
 		this.thumbnailUrl = this.$thumbnailUrl;
-		document.title = "LuxiQue | Shop"; 
+		document.title = "MabiY | Shop"; 
 		this.load_seller_products_comments();
 
         this.$forceUpdate(

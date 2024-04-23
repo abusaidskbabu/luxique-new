@@ -438,6 +438,14 @@
                                         class="menu_title_small">Flash Deals</span></a></li>
                         @endif
 
+                        @if (Auth::user()->can('marketing.single.product.offer'))
+                            <li class="nav-item"><a
+                                    class="nav-link {{ Route::is('admin.single.product.offer') || Route::is('admin.single.product.offer.create') || Route::is('admin.flash_deal.edit') ? 'menu_active' : '' }}"
+                                    href="{{ route('admin.single.product.offer') }}"><i title="Single product offers"
+                                        class="mdi mdi-monitor-multiple menu_ico_small"></i> <span
+                                        class="menu_title_small">Single Product Offers</span></a></li>
+                        @endif
+
                         @if (Auth::user()->can('marketing.user.search'))
                             <li class="nav-item"><a
                                     class="nav-link {{ Route::is('admin.marketing.user.search.keyword') ? 'menu_active' : '' }}"

@@ -202,7 +202,7 @@ class OrderAutoRenewalController extends Controller
 			//Send Push notifications
 				//Customer
 	            $message = [
-					'order_id' =>  'KB'.date('y',strtotime(Carbon::now())).$new_order_id,
+					'order_id' =>  'MS'.date('y',strtotime(Carbon::now())).$new_order_id,
 					'type' =>'order',
 					'message' =>'Order placed successfully!',
 	            ];
@@ -218,11 +218,11 @@ class OrderAutoRenewalController extends Controller
 				foreach ($sellers_id_for_order as $key => $val) {
 					$seller = Admins::find($val);
 					\Helper::sendPushNotification($val,2,'Order Placed','Order placed successfully!',json_encode($message));
-					\Helper::sendSms($seller->phone,'একটি নতুন অর্ডার সফলভাবে স্থাপন করা হয়েছে! অর্ডার আইডি হল  #'.'KB'.date('y',strtotime(Carbon::now())).$order_id);
+					\Helper::sendSms($seller->phone,'একটি নতুন অর্ডার সফলভাবে স্থাপন করা হয়েছে! অর্ডার আইডি হল  #'.'MS'.date('y',strtotime(Carbon::now())).$order_id);
 				}
 				
 				// Customer
-				\Helper::sendSms($user->phone,'অর্ডার সফলভাবে স্থাপন করা হয়েছে! আপনার অর্ডারের জন্য আপনাকে ধন্যবাদ. আপনার অর্ডার আইডি #'.'KB'.date('y',strtotime(Carbon::now())).$order_id);
+				\Helper::sendSms($user->phone,'অর্ডার সফলভাবে স্থাপন করা হয়েছে! আপনার অর্ডারের জন্য আপনাকে ধন্যবাদ. আপনার অর্ডার আইডি #'.'MS'.date('y',strtotime(Carbon::now())).$order_id);
 
 
                 $data['status'] = 1;

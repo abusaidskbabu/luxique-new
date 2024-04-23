@@ -237,49 +237,43 @@
 <section id="groceries_page">
     <div class="container">
         <div class="row groceries_three_banner">
-            <div  class="col-md-8">
-                <span v-if="ad2.grocery_ad_banner_2_status == '1'">
-                    <div v-if="ad2.grocery_ad_banner_2_link_type == 'internal_url'">
-                        <router-link :to="ad2.grocery_ad_banner_2_link">
-                            <img @error="imageLoadError" :src="baseurl+'/'+ad2.grocery_ad_banner_2" alt="img">
-                        </router-link>
-                    </div>
-                    <div v-else class="app-banner mt-1">
-                        <a target="_blank" :href="ad2.grocery_ad_banner_2_link">
-                            <img @error="imageLoadError" :src="baseurl+'/'+ad2.grocery_ad_banner_2" alt="img">
-                        </a>
-                    </div>
-                </span>
+            <div class="col-md-8">
+                <div v-if="ad2.grocery_ad_banner_2_link_type == 'internal_url'">
+                    <router-link :to="ad2.grocery_ad_banner_2_link">
+                        <img @error="imageLoadError" :src="baseurl+'/'+ad2.grocery_ad_banner_2" alt="img">
+                    </router-link>
+                </div>
+                <div v-else class="app-banner mt-1">
+                    <a target="_blank" :href="ad2.grocery_ad_banner_2_link">
+                        <img @error="imageLoadError" :src="baseurl+'/'+ad2.grocery_ad_banner_2" alt="img">
+                    </a>
+                </div>
 
             </div>
             <div class="col-md-4">
                 <div class="col-md-12 mb-3 p-0">
-                    <span v-if="ad3.grocery_ad_banner_3_status == '1'">
-                        <div v-if="ad3.grocery_ad_banner_3_link_type == 'internal_url'">
-                            <router-link :to="ad3.grocery_ad_banner_3_link">
-                                <img @error="imageLoadError" :src="baseurl+'/'+ad3.grocery_ad_banner_3" alt="img">
-                            </router-link>
-                        </div>
-                        <div v-else class="app-banner mt-1">
-                            <a target="_blank" :href="ad3.grocery_ad_banner_3_link">
-                                <img @error="imageLoadError" :src="baseurl+'/'+ad3.grocery_ad_banner_3" alt="img">
-                            </a>
-                        </div>
-                    </span>
+                    <div v-if="ad3.grocery_ad_banner_3_link_type == 'internal_url'">
+                        <router-link :to="ad3.grocery_ad_banner_3_link">
+                            <img @error="imageLoadError" :src="baseurl+'/'+ad3.grocery_ad_banner_3" alt="img">
+                        </router-link>
+                    </div>
+                    <div v-else class="app-banner mt-1">
+                        <a target="_blank" :href="ad3.grocery_ad_banner_3_link">
+                            <img @error="imageLoadError" :src="baseurl+'/'+ad3.grocery_ad_banner_3" alt="img">
+                        </a>
+                    </div>
                 </div>
                 <div class="col-md-12 p-0">
-                    <span v-if="ad4.grocery_ad_banner_4_status == '1'">
-                        <div v-if="ad4.grocery_ad_banner_4_link_type == 'internal_url'">
-                            <router-link :to="ad4.grocery_ad_banner_4_link">
-                                <img @error="imageLoadError" :src="baseurl+'/'+ad4.grocery_ad_banner_4" alt="img">
-                            </router-link>
-                        </div>
-                        <div v-else class="app-banner mt-1">
-                            <a target="_blank" :href="ad4.grocery_ad_banner_4_link">
-                                <img @error="imageLoadError" :src="baseurl+'/'+ad4.grocery_ad_banner_4" alt="img">
-                            </a>
-                        </div>
-                    </span>
+                    <div v-if="ad4.grocery_ad_banner_4_link_type == 'internal_url'">
+                        <router-link :to="ad4.grocery_ad_banner_4_link">
+                            <img @error="imageLoadError" :src="baseurl+'/'+ad4.grocery_ad_banner_4" alt="img">
+                        </router-link>
+                    </div>
+                    <div v-else class="app-banner mt-1">
+                        <a target="_blank" :href="ad4.grocery_ad_banner_4_link">
+                            <img @error="imageLoadError" :src="baseurl+'/'+ad4.grocery_ad_banner_4" alt="img">
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -308,8 +302,9 @@
 
 
 
+
 <!--add 2 start-->
-<section v-if="ad5.grocery_ad_banner_5_status == '1'" id="groceries_add2">
+<section id="groceries_add2">
     <div class="container">
         <div class="row mt-3 mb-3">
             <div class="col-md-12">
@@ -405,7 +400,7 @@
         <div class="row mt-3 mb-3">
 
             <div class="col-md-4">
-                <div v-if="sponsored_1.grocery_ad_banner_6_status == '1'" class="sponsored_single">
+                <div class="sponsored_single">
                     <div class="single_img">
                         <img @error="imageLoadError" :src="baseurl+'/'+sponsored_1.grocery_ad_banner_6" alt="">
                     </div>
@@ -429,7 +424,7 @@
             </div>
 
             <div class="col-md-4">
-                <div v-if="sponsored_2.grocery_ad_banner_7_status == '1'"  class="sponsored_single">
+                <div class="sponsored_single">
                     <div class="single_img">
                         <img @error="imageLoadError" :src="baseurl+'/'+sponsored_2.grocery_ad_banner_7" alt="">
                     </div>
@@ -453,7 +448,7 @@
             </div>
 
             <div class="col-md-4">
-                <div v-if="sponsored_3.grocery_ad_banner_8_status == '1'" class="sponsored_single">
+                <div class="sponsored_single">
                     <div class="single_img">
                         <img @error="imageLoadError" :src="baseurl+'/'+sponsored_3.grocery_ad_banner_8" alt="">
                     </div>

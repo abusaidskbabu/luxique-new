@@ -343,8 +343,8 @@ export default {
 			axios.post(this.$baseUrl+'/api/v1/get-search-product/'+"?page="+page, formData).then(response => {
 				this.searchProduct = response.data.products;
                 this.loading = true;
-                this.all_next_page_url = response.data.products.next_page_url;
-                this.all_prev_page_url = response.data.products.prev_page_url;
+                this.all_next_page_url = response.data.next_page_url;
+                this.all_prev_page_url = response.data.prev_page_url;
 
 			});
         },
@@ -380,7 +380,7 @@ export default {
             formData.append('minprice', $('.minprice').val()); localStorage.setItem("serach_minprice", $('.minprice').val());
             formData.append('maxprice', $('.maxprice').val()); localStorage.setItem("serach_maxprice", $('.maxprice').val());
 			await axios.post(this.$baseUrl+'/api/v1/get-search-product/'+"?page="+page, formData).then(response => {
-                let c = response.data.products.data;
+                let c = response.data.data;
                 let that = this;
                 c.forEach(element => {
                     that.searchProduct.data.push(element);
@@ -395,8 +395,8 @@ export default {
 
 
                 this.loading = true;
-                this.all_next_page_url = response.data.products.next_page_url;
-                this.all_prev_page_url = response.data.products.prev_page_url;
+                this.all_next_page_url = response.data.next_page_url;
+                this.all_prev_page_url = response.data.prev_page_url;
 			});
         },
 

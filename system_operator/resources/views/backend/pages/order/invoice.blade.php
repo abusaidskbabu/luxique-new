@@ -1,214 +1,534 @@
 <style type="text/css" media="print">
-  @page{
-    size:  auto;
-    margin: 0mm;
+    @page {
+        size: auto;
+        margin: 0mm;
+    }
+
+    #print_invoice {
+        display: block;
+    }
+
+    h1 {
+      color: black;
+      font-style: normal;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 11pt;
   }
-  #print_invoice{
-    display: block;
+  .p,
+  p {
+      color: black;
+      font-style: normal;
+      font-weight: normal;
+      text-decoration: none;
+      font-size: 9.5pt;
+      margin: 0pt;
+  }
+  a {
+      color: black;
+      font-style: normal;
+      font-weight: normal;
+      text-decoration: none;
+      font-size: 9.5pt;
+  }
+  h2 {
+      color: black;
+      font-style: normal;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 9.5pt;
+  }
+  .s1 {
+      color: black;
+      font-style: normal;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 9.5pt;
+  }
+  .s2 {
+      color: black;
+      font-style: normal;
+      font-weight: normal;
+      text-decoration: none;
+      font-size: 9.5pt;
+  }
+  .s3 {
+      color: black;
+      font-style: normal;
+      font-weight: normal;
+      text-decoration: none;
+      font-size: 12pt;
+  }
+  .s4 {
+      color: black;
+      font-family: "Times New Roman", serif;
+      font-style: normal;
+      font-weight: normal;
+      text-decoration: none;
+      font-size: 1pt;
+  }
+  table,
+  tbody {
+      vertical-align: top;
+      overflow: visible;
   }
 </style>
-
+<style type="text/css">
+  * {
+      margin: 0;
+      padding: 0;
+      text-indent: 0;
+  }
+  
+</style>
 
 <section id="print_invoice">
-  <table style="width: 650px;margin:30px auto">
-    <tbody>
-        <tr >
- 
-           <td style="width: 375px;padding-top: 0px; padding-bottom: 10px;">
-                <p style="margin-bottom: 5px;"><strong style="text-transform:uppercase;font-size: 14px;">Delivery Information</strong><br>
-               
-               @if($order->is_pickpoint == 1)
-                <div style="font-size: 12px;padding-right: 0px;">
-                    <span style="font-weight: 600;">  Address: </span> {{$order->pickpoint_address->title}}, {{$order->pickpoint_address->union->title ?? ''}}, {{$order->pickpoint_address->upazila->title ?? ''}},{{$order->pickpoint_address->district->title ?? ''}},{{$order->pickpoint_address->division->title ?? ''}}
-                    <br>
-                    <span style="font-weight: 600;"> Point Name: </span>  {{$order->pickpoint_address->title}}
-                    <br>
-                    <span style="font-weight: 600;">  HP: </span>  {{$order->pickpoint_address->phone}}
-                    <br>
-                    <span style="font-weight: 600;">  E-mail: </span>  {{$order->pickpoint_address->email}}
-                </div>
-               @else
-                  <div style="font-size: 12px;padding-right: 0px;">
-                    <span style="font-weight: 600;">  Address: </span> {{$order->address->shipping_address}},{{$order->address->union->title ?? ''}}, {{$order->address->upazila->title ?? ''}},{{$order->address->district->title ?? ''}},{{$order->address->division->title ?? ''}}
-                    <br>
-                    <span style="font-weight: 600;"> Name: </span>  {{$order->address->shipping_first_name.' '.$order->address->shipping_last_name}}
-                    <br>
-                    <span style="font-weight: 600;">  HP: </span>  {{$order->address->shipping_phone}}
-                    <br>
-                    <span style="font-weight: 600;">  E-mail: </span>  {{$order->address->shipping_email}}
-                </div>
-               @endif
-
-                </p>
-            </td>
-
-            <td style="width: 245px;text-align:right;padding-left: 0px; font-size: 12px; padding-bottom: 10px;">
-                <p style="font-size:12px; padding: 0;margin: 0;width: 280px;">
-                    <img src="{{ asset('uploads/images/'.config('concave.cnf_logo'))}}"  alt="" width="70" />
-                    <br>
-                    <span style="font-weight: 600;"></span> {{ config('concave.cnf_address') }} 
-                    <br>
-                    <span style="font-weight: 600;">  HP: </span> {{ config('concave.cnf_phone') }}
-                    <br>
-                    <span style="font-weight: 600;">  E-mail: </span> {{ config('concave.cnf_email') }}
-                </p>
-            </td>
-        </tr>
-        <tr>
-            <td style="width: 100%;position: relative;"><hr style="width: 100%;margin: 0px;width: 650px;margin: 0px;position: absolute;z-index: 9999;background: #fdfdfd;"></td>
-        </tr>
-     </tbody>
-  </table>
-  <table style="width: 650px;margin:50px auto">
-    <tbody>
-        <tr>
-            <td style="width: 650px;">
-                <div class="row" style="display: flex; -ms-flex-wrap: wrap;flex-wrap: wrap;padding: 0!important;">
-                    <div class="col-md-6" style="flex: 0 0 55%;max-width: 55%;position: relative;text-align: right!important;padding: 0!important;"> <span style="text-transform: uppercase;font-size: 20px;font-weight: 600;">Invoice</span>  </div>
-                    <div class="col-md-6" style="flex: 0 0 45%;max-width: 45%;position: relative;text-align: right!important;padding: 0!important;">  <span style="text-transform: uppercase;font-size: 14px;font-weight: 600;">  Order ID: MS{{ date("y", strtotime($order->created_at)) }}{{$order->id}} </span> </div>
-                </div>
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-
-<table id="product" style="width: 650px;margin:30px auto">
-   <tbody>
-      <tr style="padding: 5px;">
-          <td style="width: 70px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong>  SL</strong></td>
-          <td style="width: 400px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Item</strong></td>
-          <td style="width: 200px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Qty</strong></td>
-          <td style="width: 200px; text-align: left;text-transform: uppercase;font-size: 12px;"><strong> Price</strong></td>
+    <p style="text-indent: 0pt; text-align: left;">
+      <span>
+          <table border="0" cellspacing="0" cellpadding="0" style="width:100%;">
+              <tr>
+                  <td><img width="205" height="65" src="{{ asset('uploads/images/frontendlogo.png') }}" /></td>
+                  <td>
+                      <h1 style="padding-top: 3pt; text-indent: 0pt; text-align: right; font-size: 11pt;">{{ config('concave.cnf_appname') }}</h1>
+                      <p style="text-indent: 0pt; text-align: right; ">{{ config('concave.cnf_address') }}</p>
+                      <p style="text-indent: 0pt; text-align: right;">{{ config('concave.cnf_phone') }}</p>
+                      <p style="text-indent: 0pt; text-align: right;"><a href="mailto:{{ config('concave.cnf_email') }}">{{ config('concave.cnf_email') }}</a></p>
+                      <p style="text-indent: 0pt; text-align: right;">mabiyshop.com</p>
+                  </td>
+              </tr>
+          </table>
+      </span>
+  </p>
+  <div style="display: flex; justify-content: space-between;">
+      <div>
+          <h2 style="padding-left: 9pt; text-indent: 0pt; text-align: left;">Bill To, 
+              <br>
+              <span style="font-weight: 600;"> Name: </span>  {{$order->user->name ?? '' }}
+              <br>
+              <span style="font-weight: 600;">  Phone: </span>  {{$order->user->phone ?? ''}}
+              <br>
+              <span style="font-weight: 600;">  E-mail: </span>  {{$order->user->shipping_email ?? ''}}
+              <br>
+              <span style="font-weight: 600;">  Address: </span> 
+              @if($order->is_pickpoint == 1)
+                  {{$order->pickpoint_address->address}}, <br>{{$order->pickpoint_address->union->title ?? ''}}, {{$order->pickpoint_address->upazila->title ?? ''}},{{$order->pickpoint_address->district->title ?? ''}},{{$order->pickpoint_address->division->title ?? ''}}
+              @else
+                  {{$order->address->shipping_address}}, <br>{{$order->address->union->title ?? ''}}, 
+                  {{$order->address->upazila->title ?? ''}},
+                  {{$order->address->district->title ?? ''}},
+                  {{$order->address->division->title ?? ''}}
+              @endif
+          </h2>
           
-          <td style="width: 120px; text-align: right;text-transform: uppercase;font-size: 12px;"><strong>  Sub Total</strong></td>
-      </tr>
-      @php $subtotal = 0; $shipping_cost =0; $packaging_cost = 0; $security_charge = 0; $refunded = 0; @endphp
-    @foreach($order->order_details as $item)
-      @php 
-         if(\Auth::user()->getRoleNames()[0] == 'seller'){
-            if(\Auth::id() != $item->seller_id){
-               continue;
-            }
-         }
-
-         if ($item->status == 8) {
-            $refunded += ($item->product_qty * $item->price);
-         }
-
-         $subtotal += ($item->product_qty * $item->price); 
-         $shipping_cost += ($item->shipping_cost*$item->product_qty);
-         $packaging_cost += $item->packaging_cost;
-         $security_charge += $item->security_charge;
-
-      @endphp
-      <tr style="padding: 5px;">
-         <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;">{{$loop->index + 1}}.</td>
-         <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;">
-            {{ $item->product->title }} 
-            @if($item->status == 5)
-               <span style="background-color: #d30d44; font-size: 12px !important;font-weight: 400; padding: 3px 11px;">Canceled</span>
-            @endif
-            <br>
-            @if($item->product->product_type == 'variable' || $item->product->product_type == 'service')
-                <small><b>SKU:</b> {{ $item->product_sku }}</small><br>
-                @php 
-                  $variable_option = json_decode($item->product_options);
-                @endphp
-                @if($variable_option)
-                @foreach($variable_option as $key=> $val)
-                    <span style="margin-right: 5px;"> <b>{{ $key }}: </b> {{ $val }}</span>
-                @endforeach
-                @endif
-                <br>
-            @else
-                <small><b>SKU:</b> {{ $item->product_sku }}</small><br>
-            @endif
+      </div>
+      <div>
+          <h2 style="padding-top: 4pt; text-indent: 0pt; text-align: right;">Invoice #MS{{ date('Y', strtotime($order->created_at))}}{{$order->id}}</h2>
+          <h2 style="text-indent: 0pt; text-align: right;">Date: {{ date('d-m-Y', strtotime($order->created_at))}}</h2>
+          <h2 style="padding-left: 42pt; text-indent: 0pt; text-align: right;">Voucher:</h2>
+      </div>
+  </div>
+  <table style="border-collapse: collapse; margin-left: 6.125pt;" cellspacing="0">
+      <tr style="height: 20pt;">
+          <td
+              style="
+                  width: 37pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+              bgcolor="#DDDDDD"
+          >
+              <p class="s1" style="padding-top: 4pt; padding-right: 11pt; text-indent: 0pt; text-align: right;">SN</p>
           </td>
-         <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;"><span style="font-size: 12px;"> {{ $item->product_qty }}</span></td>
-         <td style="width: 70px; text-align: left;font-size: 12px;padding-top: 5px;">BDT <span style="font-size: 12px;"> {{ $item->price }}</span></td>
-         <td style="width: 120px; text-align: right;font-size: 12px;">BDT {{ ($item->product_qty*$item->price) }}</td>
+          <td
+              style="
+                  width: 271pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+              bgcolor="#DDDDDD"
+          >
+              <p class="s1" style="padding-top: 4pt; padding-left: 4pt; text-indent: 0pt; text-align: left;">Product Name</p>
+          </td>
+          <td
+              style="
+                  width: 64pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+              bgcolor="#DDDDDD"
+          >
+              <p class="s1" style="padding-top: 4pt; padding-left: 16pt; padding-right: 16pt; text-indent: 0pt; text-align: center;">Qty</p>
+          </td>
+          <td
+              style="
+                  width: 86pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+              bgcolor="#DDDDDD"
+          >
+              <p class="s1" style="padding-top: 4pt; padding-left: 31pt; padding-right: 30pt; text-indent: 0pt; text-align: center;">Price</p>
+          </td>
+          <td
+              style="
+                  width: 99pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+              bgcolor="#DDDDDD"
+          >
+              <p class="s1" style="padding-top: 4pt; padding-left: 24pt; padding-right: 23pt; text-indent: 0pt; text-align: center;">Subtotal</p>
+          </td>
       </tr>
-    @endforeach
-
-
-   </tbody>
-</table>
-
-  <table style="width: 650px;text-align:right; margin:50px auto">
-        <tbody>
-            <tr>
-                <td style="width: 170px;">&nbsp;</td>
-                <td style="width: 80px;">
-                    <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Sub Total:&nbsp;</strong>BDT {{ $subtotal - $refunded }}</p>
-
-                    {{-- @if($order->grocery_shipping_cost && $order->grocery_shipping_cost > 0)
-                      <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Grocery Shipping Cost:&nbsp;</strong>BDT  {{ $order->grocery_shipping_cost ?? 0 }}</p>
-                    @endif --}}
-                    @if($order->shipping_cost > 0)
-                    <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Total Shipping Cost(+):&nbsp;</strong>BDT  {{ $order->shipping_cost}}</p>
-                    @endif
-
-                    @if($order->vat > 0)
-                    <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">VAT(+):&nbsp;</strong>BDT  {{ $order->vat}}</p>
-                    @endif
-
-                    @if($order->coupon_amount > 0)
-                    <p style="margin: 1px;font-size: 12px;" ><strong style="float: left;">Coupon Discount(-):&nbsp;</strong>BDT {{ $order->coupon_amount }} </p>
-                    @endif
-
-                    @if($order->voucher_amount > 0)
-                    <p style="margin: 1px;font-size: 12px;" ><strong style="float: left;">Voucher Discount(-):&nbsp;</strong>BDT  {{ $order->voucher_amount }}</p>
-                    @endif
-
-                    @if($packaging_cost > 0)
-                    <p style="margin: 1px;font-size: 12px;" ><strong style="float: left;">Packaging Cost(+):&nbsp;</strong>BDT  {{ $packaging_cost }}</p>
-                    @endif
-
-                    @if($security_charge > 0)
-                    <p style="margin: 1px;font-size: 12px;" ><strong style="float: left;">Security Charge(+):&nbsp;</strong>BDT  {{ $security_charge }}</p>
-                    @endif
-
-                    @if($refunded > 0)
-                    <p style="margin: 1px;font-size: 12px;" ><strong style="float: left;">Refund Amount(-):&nbsp;</strong>BDT  {{ $refunded }}</p>
-                    @endif
-
-                    <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Paid:&nbsp;</strong>BDT {{ $order->paid_amount }} </p>
-                    <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Due:&nbsp;</strong>BDT {{ $order->total_amount - $order->paid_amount }} </p>
-
-                    {{-- @if($order->payment_method == 'cash_on_delivery')
-                      @if($order->status == 6)
-                        <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Paid:&nbsp;</strong>BDT {{ $order->paid_amount + $order->grocery_shipping_cost + $packaging_cost + $security_charge  }} </p>
-                        <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Due:&nbsp;</strong>BDT 0.00 </p>
+      @php 
+          $subtotal = 0;
+      @endphp
+      @foreach($order->order_details as $details)
+          @php
+              if(\Auth::user()->getRoleNames()[0] == 'seller'){
+                  if(\Auth::id() != $details->seller_id){
+                  continue;
+                  }
+              }
+          @endphp
+          <tr style="height: 20pt;">
+              <td
+                  style="
+                      width: 37pt;
+                      border-top-style: solid;
+                      border-top-width: 1pt;
+                      border-left-style: solid;
+                      border-left-width: 1pt;
+                      border-bottom-style: solid;
+                      border-bottom-width: 1pt;
+                      border-right-style: solid;
+                      border-right-width: 1pt;
+                  "
+              >
+                  <p class="s1" style="padding-top: 4pt; padding-right: 15pt; text-indent: 0pt; text-align: right;">{{ $loop->iteration }}</p>
+              </td>
+              <td
+                  style="
+                      width: 271pt;
+                      border-top-style: solid;
+                      border-top-width: 1pt;
+                      border-left-style: solid;
+                      border-left-width: 1pt;
+                      border-bottom-style: solid;
+                      border-bottom-width: 1pt;
+                      border-right-style: solid;
+                      border-right-width: 1pt;
+                  "
+              >
+                  <p class="s2" style="padding-top: 4pt; padding-left: 4pt; text-indent: 0pt; text-align: left;">
+                      {{$details->product->title ?? '' }}
+                      @if($details->product->product_type == 'variable' || $details->product->product_type == 'service')
+                          <small><b>SKU:</b> {{ $details->product_sku }}</small><br>
+                          @php 
+                          $variable_option = json_decode($details->product_options);
+                          @endphp
+                          @if($variable_option)
+                          @foreach($variable_option as $key=> $val)
+                              <span style="margin-right: 5px;"> <b>{{ $key }}: </b> {{ $val }}</span>
+                          @endforeach
+                          @endif
+                          <br>
                       @else
-                        <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Paid:&nbsp;</strong>BDT  0.00</p>
-                        <p style="margin: 1px;font-size: 12px;"><strong style="float: left;">Due:&nbsp;</strong>BDT {{ $order->paid_amount + $order->grocery_shipping_cost + $packaging_cost + $security_charge }} </p>
+                          <small><b>SKU:</b> {{ $details->product_sku }}</small><br>
                       @endif
-                    @else
-                        
-                    @endif --}}
-                    
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <table style="width: 650px;text-align:left; margin:50px auto">
-        <tbody style="text-align: center;">
-            <p style="font-size:12px;text-align: center;"><strong>Order Note: </strong>{{$order->note ?? ''}}</p>
-            <p style="font-size:12px;text-align: center;">Thank you for being with us. Stay connected with <b>mabiyshop.com</b> </p>
-            <p style="text-align: center;"><img src="data:image/png;base64, {{DNS1D::getBarcodePNG('MS'.date("y", strtotime($order->created_at)).$order->id, 'C39',5,10) }}" alt=""  width="150px" height="30px"></p>
-        </tbody>
-    </table>
-  
+                  </p>
+              </td>
+              <td
+                  style="
+                      width: 64pt;
+                      border-top-style: solid;
+                      border-top-width: 1pt;
+                      border-left-style: solid;
+                      border-left-width: 1pt;
+                      border-bottom-style: solid;
+                      border-bottom-width: 1pt;
+                      border-right-style: solid;
+                      border-right-width: 1pt;
+                  "
+              >
+                  <p class="s2" style="padding-top: 4pt; padding-left: 16pt; padding-right: 16pt; text-indent: 0pt; text-align: center;">
+                      
+                      {{ $details->product_qty }}
+                      
+                  </p>
+              </td>
+              <td
+                  style="
+                      width: 86pt;
+                      border-top-style: solid;
+                      border-top-width: 1pt;
+                      border-left-style: solid;
+                      border-left-width: 1pt;
+                      border-bottom-style: solid;
+                      border-bottom-width: 1pt;
+                      border-right-style: solid;
+                      border-right-width: 1pt;
+                  "
+              >
+                  <p class="s2" style="padding-top: 4pt; padding-left: 23pt; text-indent: 0pt; text-align: left;"> 
+                      @if($details->base_price !=  $details->price)
+                          <del>{{ number_format((float) $details->base_price , 2, '.', '') }} Tk</del>
+                      @endif 
+                      {{ number_format((float)$details->price , 2, '.', '') }} Tk</p>
+              </td>
+              <td
+                  style="
+                      width: 99pt;
+                      border-top-style: solid;
+                      border-top-width: 1pt;
+                      border-left-style: solid;
+                      border-left-width: 1pt;
+                      border-bottom-style: solid;
+                      border-bottom-width: 1pt;
+                      border-right-style: solid;
+                      border-right-width: 1pt;
+                  "
+              >
+                  <p class="s2" style="padding-top: 4pt; padding-left: 24pt; padding-right: 23pt; text-indent: 0pt; text-align: center;"> {{ number_format((float)$details->product_qty *  $details->price , 2, '.', '') }} Tk</p>
+                  @php $subtotal +=  ($details->product_qty *  $details->price); @endphp
+              </td>
+          </tr>
+      @endforeach
+  </table>
+  <p style="text-indent: 0pt; text-align: left;"><br /></p>
+  <table style="border-collapse: collapse; margin-left: 6.125pt;" cellspacing="0">
+      <tr style="height: 20pt;">
+          <td
+              style="
+                  width: 436pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-top-color: #ffffff;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-left-color: #ffffff;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-bottom-color: #ffffff;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Sub Total</p>
+          </td>
+          <td
+              style="
+                  width: 121pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$subtotal , 2, '.', '')}} Tk</p>
+          </td>
+      </tr>
+      <tr style="height: 20pt;">
+          <td style="width: 436pt; border-bottom-style: solid; border-bottom-width: 1pt; border-bottom-color: #ffffff; border-right-style: solid; border-right-width: 1pt;">
+              <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Shipping Cost</p>
+          </td>
+          <td
+              style="
+                  width: 121pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->shipping_cost , 2, '.', '')}} Tk</p>
+          </td>
+      </tr>
+      <tr style="height: 20pt;">
+          <td style="width: 436pt; border-bottom-style: solid; border-bottom-width: 1pt; border-bottom-color: #ffffff; border-right-style: solid; border-right-width: 1pt;">
+              <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Discount</p>
+          </td>
+          <td
+              style="
+                  width: 121pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->discount_amount , 2, '.', '')}} Tk</p>
+          </td>
+      </tr>
+      <tr style="height: 20pt;">
+          <td style="width: 436pt; border-bottom-style: solid; border-bottom-width: 1pt; border-bottom-color: #ffffff; border-right-style: solid; border-right-width: 1pt;">
+              <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Total Gross</p>
+          </td>
+          <td
+              style="
+                  width: 121pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->total_amount , 2, '.', '')}} Tk</p>
+          </td>
+      </tr>
+
+      <tr style="height: 20pt;">
+          <td
+              style="
+                  width: 436pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-top-color: #ffffff;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-left-color: #ffffff;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Paid</p>
+          </td>
+          <td
+              style="
+                  width: 121pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->paid_amount , 2, '.', '')}} TK</p>
+          </td>
+      </tr>
+      
+      <tr style="height: 20pt;">
+          <td
+              style="
+                  width: 436pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-top-color: #ffffff;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-left-color: #ffffff;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-bottom-color: #ffffff;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Due</p>
+          </td>
+          <td
+              style="
+                  width: 121pt;
+                  border-top-style: solid;
+                  border-top-width: 1pt;
+                  border-left-style: solid;
+                  border-left-width: 1pt;
+                  border-bottom-style: solid;
+                  border-bottom-width: 1pt;
+                  border-right-style: solid;
+                  border-right-width: 1pt;
+              "
+          >
+              <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->total_amount - $order->paid_amount , 2, '.', '')}} Tk</p>
+          </td>
+      </tr>
+      
+  </table>
+  <p style="text-indent: 0pt; text-align: left;"><br /></p>
+  <h2 style="padding-top: 4pt; padding-left: 5pt; text-indent: 0pt; text-align: left;">Note: {{ $order->note }}</h2>
+  <h2 style="padding-left: 5pt; text-indent: 0pt; text-align: left;">*Payment By: <span class="p">()</span></h2>
+  <h2 style="padding-top: 2pt; padding-left: 5pt; text-indent: 0pt; text-align: left;">Created By: <span class="p">{{ config('concave.cnf_appname') }}</span></h2>
+  <p class="s4" style="padding-left: 195pt; text-indent: 0pt; line-height: 1pt; text-align: left;"></p>
+  <div style="display: flex; justify-content: space-between;">
+      <div>
+          <p style="padding-left: 9pt; text-indent: 0pt; line-height: 11pt; text-align: left;">1 [Sold Invoice #MS{{ date('Y', strtotime($order->created_at))}}{{$order->id}} ]</p>
+      </div>
+      <div>
+          --------------------------------
+          <p style="padding-left: 9pt; text-indent: 0pt; line-height: 11pt; text-align: center;">Authorized Signature </p>
+      </div>
+      <div>
+          --------------------------------
+          <p style="padding-left: 9pt; text-indent: 0pt; line-height: 11pt; text-align: right;">Customer Signature</p>
+      </div>
+  </div>
+
+  <table style="width: 650px;text-align:left; margin:50px auto;">
+      <tbody style="text-align: center;">
+          <p style="font-size:12px;text-align: center;">Thank you for being with us. Stay connected with <b>mabiyshop.com</b> </p>
+          <p style="text-align: center;"><img src="data:image/png;base64, {{DNS1D::getBarcodePNG('MS'.date("y", strtotime($order->created_at)).$order->id, 'C39',5,10) }}" alt=""  width="150px" height="30px"></p>
+      </tbody>
+  </table>
 </section>
 
 <script>
-    function printInvoice(div){
-      var divToPrint= jQuery('#print_invoice').html();
-      var newWin=window.open('','Print-Window');
-      newWin.document.open();
-      newWin.document.write('<html><link href=""><body onload="window.print()">'+divToPrint+'</body></html>');
-      newWin.document.close();
-      setTimeout(function(){newWin.close();},100);
+    function printInvoice(div) {
+        var divToPrint = jQuery('#print_invoice').html();
+        var newWin = window.open('', 'Print-Window');
+        newWin.document.open();
+        newWin.document.write('<html><link href=""><body onload="window.print()">' + divToPrint + '</body></html>');
+        newWin.document.close();
+        setTimeout(function() {
+            newWin.close();
+        }, 100);
     }
 </script>

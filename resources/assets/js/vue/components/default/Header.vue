@@ -1,5 +1,72 @@
 <template>
    <div>
+
+<div class="modal fade" id="location_modal" tabindex="-1" role="dialog" aria-labelledby="location_modalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="location_modalTitle">
+            <span onclick="getLocation()" class="getlocation"> <i class="fa fa-map-marker"></i>  {{ $t('My Location') }}</span> <span v-if="site_info.upazila_title" class="remove_location" >({{ site_info.upazila_title }} <span @click.prevent="removeLocation()" title="Remove your current location.">x</span>)</span> <b>{{ $t('or') }}</b> <span> {{ $t('Select Your Area') }}</span>
+            
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form @submit.prevent="location_submit()">
+      <div class="modal-body">
+         <div class="options">
+            <div class="row text-left">
+            <div class="col-md-12">
+            <div class="form-group">
+               <label for="">  {{ $t('Division') }}<span style="color:#f00">*</span></label>
+               <select  @change.prevent="getLocationDistrict()" name="division" class="form-control location_division" required>
+                  <option disabled selected>--Select Division--</option>
+                  <option class="Dhaka_select" value="68">Dhaka</option>
+                  <option class="Chattogram_select" value="36">Chattogram</option>
+                  <option class="Rajshahi_select" value="60">Rajshahi</option>
+                  <option class="Khulna_select" value="65">Khulna</option>
+                  <option class="Barishal_select" value="66">Barishal</option>
+                  <option class="Sylhet_select" value="67">Sylhet</option>
+                  <option class="Rangpur_select" value="69">Rangpur</option>
+                  <option class="Mymensingh_select" value="6175">Mymensingh</option>
+               </select>
+               <div class="validation_error" v-if="errors.shipping_division" v-html="errors.shipping_division[0]" /></div>
+            </div>
+            <div class="col-md-12">
+               <div class="form-group">
+                  <label for=""> {{ $t('District') }} <span style="color:#f00">*</span></label>
+                  <select  @change.prevent="getLocationUpazila()" name="district" class="form-control location_district" required>
+                     <option disabled selected>--Select District--</option>
+                     <option data-removeable="true" v-for="(district,index) in districts" :key="index" :class="district.title+'_select'" :value="district.id">{{district.title}}</option>
+                  </select>
+                  <div class="validation_error" v-if="errors.shipping_district" v-html="errors.shipping_district[0]" /></div>
+               </div>
+            </div>
+            <div class="row">
+               <div class="col-md-12">
+               <div class="form-group">
+                  <label for="">{{ $t('Upazila / Thana') }} <span style="color:#f00">*</span></label> 
+                  <select  @change.prevent="getLocationUnion()" name="upazila" class="form-control location_upazail" required>
+                     <option disabled selected>--Select Upazila--</option>
+                     <option data-removeable="true" v-for="(upazila,index) in upazilas" :key="index" :class="upazila.title+'_select'" :value="upazila.id">{{upazila.title}}</option>
+                  </select>
+                  <div class="validation_error" v-if="errors.shipping_thana" v-html="errors.shipping_thana[0]" />
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <div class="modal-footer">
+        <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+        <button type="submit" class="btn btn-primary" style="border-radius:5px;">Submit</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
    <div class="desktop_nav">
       <section id="searchbar_section">
          <div class="container">
@@ -81,6 +148,10 @@
                <div class="col-xl-4 col-lg-4 col-md-4 justify-content-end d-flex">
                  <div class="user-box top_right_icon">
                      <ul>
+                       
+                        <!-- <li class="comparenumberFull hover_element" >
+                           <a data-toggle="modal" data-target="#location_modal" href="#" title="Select your area." style="color: #255ca8;">  <i class="fa fa-map-marker" aria-hidden="true"></i><span  v-if="site_info.upazila_title" id="location_upazila_title"> {{ site_info.upazila_title }} </span></a>
+                        </li> -->
                         <li class="comparenumberFull hover_element">
                            <router-link :to="{name: 'compare-list'}" title="Go to compare list"> <i class="fa fa-retweet" aria-hidden="true"></i><span  v-if="wishlistVuex" class="comparenumber">  {{ compreVuex.total }} </span> </router-link>
                         </li>
@@ -180,7 +251,7 @@
                                     </div>
                                  </li>
                                  <li>
-                                    <router-link class="nav_login" :to="{name: 'login'}">  <i class="fa fa-sign-in" aria-hidden="true"></i> <span> {{ $t('Login')+'/'+$t('Register') }}</span> </router-link>
+                                    <router-link class="nav_login" :to="{name: 'sign-up'}">  <i class="fa fa-sign-in" aria-hidden="true"></i> <span> {{ $t('Login')+'/'+$t('Register') }}</span> </router-link>
                                  </li>
                            </ul>
                         </div>
@@ -244,18 +315,19 @@
                <div class="col-md-6 pr-0">
                   <div class="modal-body">
                      <div class="register-form popup_register_form">
-                        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                        <!-- <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
                               <li data-radiovalue="501" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
-                                 <button style="width: 100%;" class="btn btn-primary active" id="pills-pass-tab" data-toggle="pill" data-target="#pills-password" type="button" role="tab" aria-controls="pills-password" aria-selected="true">{{$t('Password Login')}}</button>
+                                 <button style="width: 100%;" class="btn btn-primary " id="pills-pass-tab" data-toggle="pill" data-target="#pills-password" type="button" role="tab" aria-controls="pills-password" aria-selected="false">{{$t('Password Login')}}</button>
                               </li>
                               <li data-radiovalue="500" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
-                                 <button style="width: 100%;" class="btn btn-dark" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button" role="tab" aria-controls="pills-otp" aria-selected="false">{{$t('OTP Login')}}</button>
+                                 <button style="width: 100%;" class="btn btn-dark active" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button" role="tab" aria-controls="pills-otp" aria-selected="true">{{$t('OTP Login')}}</button>
                               </li>
                         </ul>
-                        <hr>
-                        <form  @submit.prevent="popupPasswordLogin()">
+                        <hr> -->
+                        <!-- <form @submit.prevent="popupPasswordLogin()"> -->
+                        <form @submit.prevent="signup">
                               <div class="tab-content" id="pills-tabContent">
-                                 <div class="tab-pane fade show active" id="pills-password" role="tabpanel" aria-labelledby="pills-pass-tab">
+                                 <!-- <div class="tab-pane fade " id="pills-password" role="tabpanel" aria-labelledby="pills-pass-tab">
                                     <div class="password_logins">
                                           <div class="form-group">
                                              <label for=""> {{ $t('Mobile Number / Email') }}</label>
@@ -267,7 +339,7 @@
                                           </div>
                                     </div>
                                  </div>
-                                 <div class="tab-pane fade" id="pills-otp" role="tabpanel" aria-labelledby="pills-otp-tab">
+                                 <div class="tab-pane fade show active" id="pills-otp" role="tabpanel" aria-labelledby="pills-otp-tab">
                                     <div class="otp_logins">
                                           <div class="otp_before">
                                              <div class="form-group">
@@ -281,11 +353,25 @@
                                              </div>
                                           </div>
                                     </div>
+                                 </div> -->
+                                 <div class="form-group">
+                                    <label for=""> {{ $t('Mobile Number')}} </label>
+                                    <input id="login_page_generate_otp" v-model="signupForm.mobile_number" name="mobile_number" type="text" class="form-control mobile_number_login_page" :placeholder="$t('Enter Email / Mobile Number')"> 
+                                 </div>
+                                 <div class="form-group">
+                                    <button type="button" @click.prevent="generateOtp_login_page()" class="generate_otp_btn singin-with-google">{{ $t('Next') }}</button>
+                                 </div>
+                                 <div class="form-group popupOtp_login_page_group d-none">
+                                    <label for="">{{ $t('OTP') }}</label>
+                                    <input id="popupOtp_login_page"  v-model="signupForm.otp" type="text" name="otp"  class="form-control"  :placeholder="$t('OTP')+'..'">
+                                    
+                                    <input type="hidden" name="affiliate_referer" :value="affiliate_referer">
+                                    <input type="submit" class="mt-3 singin-with-google" :value="$t('Sign up now')">
                                  </div>
                               </div>
                               <div class="form-group">
-                                 <input type="submit" class="singin-with-google password_login password_login_popup" value="Sign in">
-                                 <div class="singin-with-google otp_login otp_login_popup" @click.prevent="PopupOTPSignIn()">Sign in</div>
+                                 <input type="submit" class="singin-with-google " value="Sign in">
+                                 <!-- <div class="singin-with-google otp_login otp_login_popup" @click.prevent="PopupOTPSignIn()">Sign in</div> -->
                               </div>
                         </form>
                      </div>
@@ -326,21 +412,20 @@
                      <h5><b>{{ $t('Please login to continue') }}</b></h5>
                   </div>
                </div>
-
-
                 <div class="register-form popup_register_form">
-                    <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+                    <!-- <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
                         <li data-radiovalue="501" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
-                            <button style="width: 100%;" class="btn btn-primary active" id="pills-pass-tab" data-toggle="pill" data-target="#pills-password" type="button" role="tab" aria-controls="pills-password" aria-selected="true">{{$t('Password Login')}}</button>
+                            <button style="width: 100%;" class="btn btn-primary " id="pills-pass-tab" data-toggle="pill" data-target="#pills-password" type="button" role="tab" aria-controls="pills-password" aria-selected="false">{{$t('Password Login')}}</button>
                         </li>
                         <li data-radiovalue="500" style="width: 50%;" class="nav-item whatloginPopup" role="presentation">
-                            <button style="width: 100%;" class="btn btn-dark" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button" role="tab" aria-controls="pills-otp" aria-selected="false">{{$t('OTP Login')}}</button>
+                            <button style="width: 100%;" class="btn btn-dark active" id="pills-otp-tab" data-toggle="pill" data-target="#pills-otp" type="button" role="tab" aria-controls="pills-otp" aria-selected="true">{{$t('OTP Login')}}</button>
                         </li>
                     </ul>
-                    <hr>
-                    <form  @submit.prevent="popupPasswordLogin()">
+                    <hr> -->
+                    <!-- <form  @submit.prevent="popupPasswordLogin()"> -->
+                     <form @submit.prevent="signup()">
                         <div class="tab-content" id="pills-tabContent">
-                            <div class="tab-pane fade show active" id="pills-password" role="tabpanel" aria-labelledby="pills-pass-tab">
+                            <!-- <div class="tab-pane fade " id="pills-password" role="tabpanel" aria-labelledby="pills-pass-tab">
                                 <div class="password_logins">
                                     <div class="form-group">
                                         <label for=""> {{ $t('Mobile Number / Email') }}</label>
@@ -352,7 +437,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="pills-otp" role="tabpanel" aria-labelledby="pills-otp-tab">
+                            <div class="tab-pane fade show active" id="pills-otp" role="tabpanel" aria-labelledby="pills-otp-tab">
                                 <div class="otp_logins">
                                     <div class="otp_before">
                                         <div class="form-group">
@@ -366,11 +451,25 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
+                              <div class="form-group">
+                                 <label for=""> {{ $t('Mobile Number')}} </label>
+                                 <input id="login_page_generate_otp" name="mobile_number" type="text" class="form-control mobile_number_login_page" :placeholder="$t('Enter Email / Mobile Number')"> 
+                              </div>
+                              <div class="form-group">
+                                 <button type="button" @click.prevent="generateOtp_login_page()" class="generate_otp_btn singin-with-google">{{ $t('Next') }}</button>
+                              </div>
+                              <div class="form-group popupOtp_login_page_group d-none">
+                                 <label for="">{{ $t('OTP') }}</label>
+                                 <input id="popupOtp_login_page" type="text" name="otp"  class="form-control"  :placeholder="$t('OTP')+'..'">
+                                 
+                                 <input type="hidden" name="affiliate_referer" :value="affiliate_referer">
+                                 <input type="submit" class="mt-3 singin-with-google" :value="$t('Sign in now')">
+                              </div>
                         </div>
                         <div class="form-group">
-                            <input type="submit" class="singin-with-google password_login password_login_popup" value="Sign in">
-                            <div class="singin-with-google otp_login otp_login_popup" @click.prevent="PopupOTPSignIn()">Sign in</div>
+                            <!-- <input type="submit" class="singin-with-google password_login password_login_popup" value="Sign in"> -->
+                            <!-- <div class="singin-with-google otp_login otp_login_popup" @click.prevent="PopupOTPSignIn()">Sign in</div> -->
                         </div>
                     </form>
                 </div>
@@ -455,7 +554,7 @@
                <ul>
                   <li class="main-menu-text"> <b> {{ $t('Main menu') }}</b></li>
                   <li class="padding_top">
-                     <router-link :to="{name: 'sellers'}"> {{ $t('Brands') }} </router-link>
+                     <router-link :to="{name: 'sellers'}"> {{ $t('All Shops') }} </router-link>
                   </li>
                   <li>
                      <router-link :to="{name: 'products'}"> {{ $t('Products') }} </router-link>
@@ -477,12 +576,12 @@
                      <router-link :to="{name: 'flashdeals'}"> {{ $t('Flash Deals') }} </router-link>
                   </li>
 
-                  <!-- <li>
+                  <li>
                      <router-link :to="{name: 'groceries'}"> {{ $t('Groceries') }} </router-link>
-                  </li> -->
+                  </li>
 
 
-                  <li style="background: #fd8618;padding: 16px 0px 1px 20px;color:#fff;">
+                  <li style="background: #00563a;padding: 16px 0px 1px 20px;color:#fff;">
                         <p> 
                            {{ $t('En') }}
 
@@ -642,6 +741,9 @@
                                  <div class="table-item">BDT {{ cart.price }}   &nbsp;<span class="old-price"> <del v-if="cart.price_before_offer > cart.price">BDT {{ cart.price_before_offer }}</del> </span></div>
                                  
                                  <div class="table-item left_cart_varient_section">
+                                    <span  v-if="cart.product_type == 'simple'">
+                                       <p class="mb-0 text-capitalize font-13" > <b>Weight</b> : {{  cart.total_weight }} {{ cart.weight_unit }}</p>
+                                    </span>
                                     <span  v-if="cart.product_type == 'variable'">
                                        <p class="mb-0 text-capitalize font-13" v-for="(vOption,key) in cart.variable_options" :key="key"> <b>{{key}}</b> : {{vOption}}</p>
                                     </span>
@@ -760,7 +862,6 @@
                                              </span>
 
                                           </h5>
-                                          
                                           <div v-if="site_info.default_shipping_enable != '1'">
                                              <div v-if="cart.product.is_grocery != 'grocery' && cart.product_type != 'digital' && cart.product_type != 'service' && logged_in_user_address != 0 && logged_in_user.default_address_id != null" class="select_shipping_options">
                                                 <span v-if="logged_in_user">
@@ -781,7 +882,6 @@
                                                 </span>
                                              </div>
                                           </div>
-                                          
 
                                           <span  v-if="cart.product_type == 'variable'">
                                              <p class="badge badge-primary mr-2 mb-0" v-for="(vOption,key) in cart.variable_options" :key="key"> <b>{{key}}</b> : {{vOption}}</p>
@@ -821,7 +921,8 @@
                                     <li>
                                        <div class="row p-0">
                                           <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
-                                          <div class="col-lg-10 p-0 pl-1"> <span>{{  selected_pickpoint.title+', ' +selected_pickpoint.division.title +', '+selected_pickpoint.district.title+', '+selected_pickpoint.upazila.title+', '+ selected_pickpoint.union.title+', '+selected_pickpoint.address }}</span> <span class="badge badge-danger">{{$t('Pickup Point')}}</span></div>
+
+                                          <div class="col-lg-10 p-0 pl-1"> {{  selected_pickpoint.title }} <span v-if="selected_pickpoint.division">{{ selected_pickpoint.division.title }}</span>,<span v-if="selected_pickpoint.district"> {{ selected_pickpoint.district.title }}</span>, <span v-if="selected_pickpoint.upazila"> {{ selected_pickpoint.upazila.title }}</span>, <span v-if="selected_pickpoint.union">{{ selected_pickpoint.union.title }}</span> {{ selected_pickpoint.address }}  <span class="badge badge-danger">{{$t('Pickup Point')}}</span></div>
                                           <div class="col-lg-1 pl-0 pt-1 pr-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
                                        </div>
                                     </li>
@@ -852,7 +953,9 @@
                                  </div>
                                  <div class="col-lg-1 pl-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
                               </div>
-                              <div v-else><p class="required_addtess" data-required-login="true">{{ $t('You have to login first to add your shipping address') }}.</p></div>
+                              <div v-else>
+                                 <p class="required_addtess" data-required-login="true">{{ $t('You have to') }} <a href=""> login </a> {{ $t('first to add your shipping address') }}.</p>
+                              </div>
                            </div>
 
                   </span>
@@ -865,7 +968,8 @@
                                     <li>
                                        <div class="row p-0">
                                           <div class="col-lg-1 pr-0"><b><i class="fa fa-map-marker" aria-hidden="true"></i></b></div>
-                                          <div class="col-lg-10 p-0 pl-1"> <span>{{  address.division.title +', '+address.district.title+', '+address.upazila.title+', '+ address.union.title+', '+address.shipping_address }}</span> </div>
+                                          <div class="col-lg-10 p-0 pl-1"> <span v-if="address.division">{{ address.division.title }}</span>,<span v-if="address.district"> {{ address.district.title }}</span>, <span v-if="address.upazila"> {{ address.upazila.title }}</span>, <span v-if="address.union">{{ address.union.title }}</span></div>
+
                                           <div class="col-lg-1 pl-0 pt-1 pr-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
                                        </div>
                                     </li>
@@ -896,7 +1000,7 @@
                                  </div>
                                  <div class="col-lg-1 pl-0"><i class="fa fa-pencil address_btn" data-toggle="modal" data-target="#addressModal" aria-hidden="true"></i></div>
                               </div>
-                              <div v-else><p class="required_addtess" data-required-login="true">{{ $t('You have to login first to add your shipping address') }}.</p></div>
+                              <div v-else><p class="required_addtess" data-required-login="true">{{ $t('You have to') }} <a href="" class="text-info" @click.prevent="showLoginPopup()"> login </a> {{ $t('first to add your shipping address') }}.</p></div>
                            </div>
 
                   </span>
@@ -940,10 +1044,10 @@
                   <div class="paymentmethod mt-3">
                      <h5 class="text-uppercase cart_summary_title"> {{ $t('Payment Method') }}</h5>
                      <ul class="list-group list-group-horizontal">
-                        <li data-payment-method="online_payment" class="list-group-item selected_payment online_payment" >
+                        <!-- <li data-payment-method="online_payment" class="list-group-item  online_payment" >
                            <p class="text-center mb-0"> <img @error="imageLoadError" src="/images/ssl.png" alt=""> <br><b>{{ $t('Online Payment') }}</b></p>
-                        </li>
-                        <li data-payment-method="cash_on_delivery" class="list-group-item cash_on_delivery">
+                        </li> -->
+                        <li data-payment-method="cash_on_delivery" class="list-group-item selected_payment cash_on_delivery">
                            <p class="text-center mb-0"> <img @error="imageLoadError" src="/images/cod1.png" alt=""> <br><b> {{ $t('Cash On Delivery') }}</b></p>
                         </li>
                      </ul>
@@ -957,7 +1061,7 @@
                         <li v-if="site_info.default_shipping_enable != '1'" :data-shipping-cost="cartData.shipping_cost" class="shipping_cost_li"> <b>{{ $t('Shipping Cost') }} (+)</b>  <span>BDT&nbsp;<span class="calculatedShipping">{{ cartData.shipping_cost }}</span></span></li>
 
                         <li v-if="site_info.default_shipping_enable == '1'" :data-shipping-cost="cartData.shipping_cost" class="shipping_cost_li1"> <b>{{ $t('Shipping Cost') }} (+)</b>  <span>BDT&nbsp;<span class="calculatedShipping1">{{ cartData.shipping_cost }}</span></span></li>
-                        
+
                         <li v-if="cartData.packaging_cost > 0" :data-packaging-cost-amount="cartData.packaging_cost" class="data_packaging_cost"> <b> {{ $t('Packaging Cost') }} (+)</b> <span> BDT&nbsp;{{ cartData.packaging_cost }}</span> </li>
 
                         <li v-if="cartData.security_charge > 0" :data-security-charge-amount="cartData.security_charge" class="data_security_charge"> <b> {{ $t('Security Charge') }} (+)</b>  <span> BDT&nbsp;{{ cartData.security_charge }}</span> </li>
@@ -994,7 +1098,7 @@
                         </li>
                         <li>
                           <button class="btn btn-secondary site_color2 back_to_cart back_to_cartbtn"> {{ $t('Cart') }} </button> 
-                          <button class="btn btn-primary site_color1 proceed_to_pay" @click.prevent="proceedToPay()"> {{ $t('Place Order') }} </button> 
+                          <button class="btn btn-primary site_color1 proceed_to_pay" @click.prevent="proceedToPay()" id="confirm_purchase_btn"> {{ $t('Place Order') }} </button> 
                         </li>
                      </ul>
                   </div>
@@ -1536,11 +1640,11 @@
                      <th scope="col"> {{ $t('Defalut') }}</th>
                   </tr>
                </thead>
-               <tbody>
+               <tbody v-if="logged_in_user_address.length > 0">
                   <tr v-for="(address, index) in logged_in_user_address" :key="index" @click.prevent="change_address(address.id,0)">
                      <td> {{ address.shipping_first_name }}  {{ address.shipping_last_name }}  </td>
                      <td> {{ address.shipping_phone }} </td>
-                     <td>{{ address.division.title }}, {{ address.district.title }}, {{ address.upazila.title }}, {{ address.union.title }}</td>
+                    <td><span v-if="address.division">{{ address.division.title }}</span>,<span v-if="address.district"> {{ address.district.title }}</span>, <span v-if="address.upazila"> {{ address.upazila.title }}</span>, <span v-if="address.union">{{ address.union.title }}</span></td> 
                      <td>
                         <span v-if="logged_in_user.default_address_id == address.id">
                            <div class="select_address" title="It is your default address"> </div>
@@ -1553,7 +1657,7 @@
                </tbody>
             </table>
 
-            <h5><b>{{ $t('Select address from our pickup point') }}</b></h5>
+            <!-- <h5><b>{{ $t('Select address from our pickup point') }}</b></h5>
 
             <table class="table table-hover">
                <thead>
@@ -1564,11 +1668,12 @@
                      <th scope="col"> {{ $t('Defalut') }}</th>
                   </tr>
                </thead>
-               <tbody>
+               <tbody v-if="pickpoint_address.length > 0">
                   <tr v-for="(address, index) in pickpoint_address" :key="index" @click.prevent="change_address(address.id,1)">
                      <td> {{ address.title }} </td>
                      <td> {{ address.phone }} </td>
-                     <td>{{ address.division.title }}, {{ address.district.title }}, {{ address.upazila.title }}, {{ address.union.title }}</td>
+
+                     <td><span v-if="address.division">{{ address.division.title }}</span>,<span v-if="address.district"> {{ address.district.title }}</span>, <span v-if="address.upazila"> {{ address.upazila.title }}</span>, <span v-if="address.union">{{ address.union.title }}</span></td>
                      <td>
                         <span v-if="logged_in_user.default_address_id == address.id">
                            <div class="select_address" title="It is your default address"> </div>
@@ -1579,7 +1684,7 @@
                      </td>
                   </tr>
                </tbody>
-            </table>
+            </table> -->
 
 
          </div>
@@ -1602,23 +1707,9 @@
                                  <div class="validation_error" v-if="errors.shipping_phone" v-html="errors.shipping_phone[0]" />
                                  </div>
                               </div>
-                              <div class="col-md-6">
-                                 <div class="form-group">
-                                    <label for="">  {{ $t('Division') }}<span style="color:#f00">*</span></label>
-                                    <select  @change.prevent="getDistrict()" name="division" id="division0" class="form-control" required>
-                                       <option disabled selected>--Select Division--</option>
-                                       <option value="68" >Dhaka</option>
-                                       <option value="36">Chattogram</option>
-                                       <option value="60">Rajshahi</option>
-                                       <option value="65">Khulna</option>
-                                       <option value="66">Barishal</option>
-                                       <option value="67">Sylhet</option>
-                                       <option value="69">Rangpur</option>
-                                       <option value="6175">Mymensingh</option>
-                                    </select>
-                                    <div class="validation_error" v-if="errors.shipping_division" v-html="errors.shipping_division[0]" />
-                                    </div>
-                                 </div>
+                              
+
+                              
                                  <div class="col-md-6">
                                     <div class="form-group">
                                        <label for=""> {{ $t('District') }} <span style="color:#f00">*</span></label>
@@ -1629,8 +1720,7 @@
                                        <div class="validation_error" v-if="errors.shipping_district" v-html="errors.shipping_district[0]" />
                                        </div>
                                     </div>
-                                 </div>
-                                 <div class="row">
+
                                     <div class="col-md-6">
                                        <div class="form-group">
                                           <label for="">{{ $t('Upazila / Thana') }} <span style="color:#f00">*</span></label>
@@ -1641,11 +1731,15 @@
                                           <div class="validation_error" v-if="errors.shipping_thana" v-html="errors.shipping_thana[0]" />
                                           </div>
                                        </div>
+                                 </div>
+                                 
+                                    
+                                    <div class="row">
                                        <div class="col-md-6">
                                           <div class="form-group">
                                              <label for=""> {{ $t('Union / Area') }}<span style="color:#f00">*</span></label>
                                              <select name="union" id="union0" class="form-control" required>
-                                                <option disabled selected>--Select Union--</option>
+                                                <option value="" selected>--Select Union--</option>
                                                 <option data-removeable="true" v-for="(union,index) in unions" :key="index" :value="union.id">{{union.title}}</option>
                                              </select>
                                              <div class="validation_error" v-if="errors.shipping_union" v-html="errors.shipping_union[0]" />
@@ -1683,6 +1777,9 @@
                </div>
                </div>
                </div>
+
+
+
                <div v-if="useableVouchers.length" class="modal fade use_voucher_modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true">
                   <div class="modal-dialog modal-lg">
                      <div class="modal-content">
@@ -1714,7 +1811,7 @@
    </div>
    <!-- Address Modal start -->
 
-   
+
 </template>
 <script>
    import Vue from 'vue';
@@ -1726,6 +1823,19 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
    export default {
      data(){
        return{
+         signupForm: new Form({
+            name: '',
+            phone: '',
+            email: '',
+            mobile_number: '',
+            otp: '',
+            password: '',
+            password_confirmation: '',
+            affiliate_referer: '',
+         }),
+         errors:{},
+         show:false,
+         errors: [],
          navbars:'',
          static_pages:'',
          site_info:'',
@@ -1763,6 +1873,124 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
      },
        
      methods: {
+         signup(){
+            let session_key = localStorage.getItem("session_key");
+            let phone = $('#login_page_generate_otp').val();
+            let otp = $('#popupOtp_login_page').val();
+            let formData = new FormData();
+            formData.append('mobile_number', phone);
+            formData.append('otp', otp);
+            formData.append('session_key', session_key);
+
+            axios.post(this.$baseUrl + "/api/v1/user-register", formData).then(response =>{
+               if(response.data.status == 2){
+                  swal({
+                     title: response.data.message,
+                     icon: "error",
+                     timer: 4000
+                  });
+               }else if(response.data.status == 1){
+                     swal({
+                     title: "Your account has been successfully created. You are logged in.",
+                     icon: "success",
+                     timer: 4000
+                     }).then(()=>{
+                        localStorage.setItem("token", response.data.token);
+                        this.$store.dispatch('loadedUser');
+                        this.$store.dispatch('loadedCart');
+                        this.$store.dispatch('loadedCompares');
+                        this.$store.dispatch('loadedNotifications');
+                        $('.close').trigger('click');
+                        $('.cart_close').trigger('click');
+                        this.$router.push({name:'myaccount'});
+                        jQuery('.left_cart_icon').trigger('click');
+                        jQuery('#addressModal').modal('show');
+                        jQuery('#addressModal a[href$="#menu1"]').trigger('click');
+                     });
+               }else{
+                  this.errors = response.data.message;
+               }
+            }).catch(function(){
+                swal({
+                    title: response.data.message,
+                    icon: "error",
+                    timer: 3000
+                });
+            });
+         },
+
+         generateOtp_login_page(){
+
+               let formData = new FormData();
+            formData.append('mobile_number', $('#login_page_generate_otp').val());
+            let token = localStorage.getItem("token");
+            let axiosConfig = {
+               headers: {
+                  'Content-Type': 'application/json;charset=UTF-8',
+                  "Access-Control-Allow-Origin": "*",
+                  'Authorization': 'Bearer '+token
+               }
+            }
+            axios.post(this.$baseUrl+'/api/v1/generate-otp-for-signup',formData, axiosConfig).then(response => {
+
+               if(response.data.status == 1){
+                  swal({
+                     title: response.data.message,
+                     icon: "success",
+                     timer: 3000
+                  });
+                     $('.generate_otp_btn').hide();
+                     $('.popupOtp_login_page_group').removeClass('d-none');
+                     $('.popupOtp_login_page_group').addClass('d-block');
+               }else{
+                  swal ( "Oops", response.data.message, "error");
+               }
+            });
+         },
+
+           async getLocationDistrict(){
+               
+               await axios.get(this.$baseUrl + "/api/v1/get-district/"+0).then((response) => {
+                   this.upazilas = {};
+                   this.unions = {};
+                   this.districts = response.data;
+               });
+           },
+           
+           async getLocationUpazila(){
+               let id =  jQuery('.location_district').find('option:selected').val();
+               await axios.get(this.$baseUrl + "/api/v1/get-upazila/"+id).then((response) => {
+                       this.unions = {};
+                       this.upazilas = response.data;
+                   });
+            },
+            async getLocationUnion(){
+               let id =  jQuery('.location_upazail').find('option:selected').val();
+               await axios.get(this.$baseUrl + "/api/v1/get-union/"+id).then((response) => {
+                  this.unions = response.data;
+               });
+           },
+
+
+         removeLocation(){
+               localStorage.setItem("upazail_id", null);
+               window.location.reload();
+         },
+         location_submit(){
+            let division_id = jQuery('.location_division').find('option:selected').val();
+            let district_id = jQuery('.location_district').find('option:selected').val();
+            let upazail_id = jQuery('.location_upazail').find('option:selected').val();
+            if(isNaN(division_id)){
+               swal( "Sorry" ,  'Select division first.',  "error" );
+            }else if(isNaN(district_id)){
+               swal( "Sorry" ,  'Select district first.',  "error" );
+            }else if(isNaN(upazail_id)){
+               swal( "Sorry" ,  'Select upazila.',  "error" );
+            }else{
+               localStorage.setItem("upazail_id", upazail_id);
+               window.location.reload();
+            }
+         },
 
         load_static_pages(){
             axios.get(this.$baseUrl+'/api/v1/get-static-pages').then(response => {
@@ -1779,7 +2007,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
                window.FB.login(function(response) {
                    if(response.status == 'connected'){
                        if (response.authResponse) {
-                           axios.post('https://api.kholabazaar.com/api/v1/social-login/facebook', response.authResponse).then(function(result){
+                           axios.post('https://api.nurtaj.com/api/v1/social-login/facebook', response.authResponse).then(function(result){
                                localStorage.setItem("token", result.data.token);
                                that.$store.dispatch('loadedUser');
                                that.$store.dispatch('loadedCart');
@@ -1829,7 +2057,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
                            client_id: "397239095845-llm31ean6e5v33s3r8lhucahvk1amnko.apps.googleusercontent.com",
                            callback: function handleCredentialResponse(response) {
                                    if (response.credential) {
-                                       axios.post('https://api.kholabazaar.com/api/v1/social-login/google', {token:response.credential}).then(function(result){
+                                       axios.post('https://api.nurtaj.com/api/v1/social-login/google', {token:response.credential}).then(function(result){
                                            localStorage.setItem("token", result.data.token);
                                            that.$store.dispatch('loadedUser');
                                            that.$store.dispatch('loadedCart');
@@ -2076,122 +2304,6 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
 
 
 
-      /*
-      generateOtp(){
-         let formData = new FormData();
-			formData.append('mobile_number', $('.mobile_number_forotp').val());
-
-			let token = localStorage.getItem("token");
-			let axiosConfig = {
-				headers: {
-					'Content-Type': 'application/json;charset=UTF-8',
-					"Access-Control-Allow-Origin": "*",
-					'Authorization': 'Bearer '+token
-				}
-			}
-			axios.post(this.$baseUrl+'/api/v1/generate-otp',formData, axiosConfig).then(response => {
-
-				if(response.data.status == 1){
-					swal({
-						title: response.data.message,
-						icon: "success",
-						timer: 3000
-					});
-
-               jQuery('.otp_before').hide();
-               jQuery('.otp_after').show();
-                    
-				}else{
-					swal ( "Oops", response.data.message, "error");
-				}
-			});
-		},
-      */
-
-      /*
-      popUpOtpLogin(){
-         let session_key = localStorage.getItem("session_key");
-         let formData = new FormData();
-			formData.append('mobile_number', $('.mobile_number_forotp').val());
-			formData.append('otp', $('#popupOtp').val());
-			formData.append('session_key', session_key);
-         
-			let token = localStorage.getItem("token");
-			let axiosConfig = {
-				headers: {
-					'Content-Type': 'application/json;charset=UTF-8',
-					"Access-Control-Allow-Origin": "*",
-					'Authorization': 'Bearer '+token
-				}
-			}
-			axios.post(this.$baseUrl+'/api/v1/otp-login',formData, axiosConfig).then(response => {
-
-				if(response.data.status == 1){
-					swal({
-						title: response.data.message,
-						icon: "success",
-						timer: 3000
-					});
-
-         
-               let user = response.data.customer;
-               this.$store.commit('SET_USER', user);
-               this.$store.commit('SET_AUTHENTICATED', true);
-               localStorage.setItem("auth", true);
-               localStorage.setItem("token", response.data.token);
-               localStorage.setItem("user_id", response.data.customer.id);
-               this.$store.dispatch('loadedUser');
-               this.$store.dispatch('loadedCart');
-               this.$store.dispatch('loadedCompares');
-               this.$store.dispatch('loadedNotifications');
-               $('.close').trigger('click');
-               jQuery('.otp_before').show();
-               jQuery('.otp_after').hide();
-
-       
-				}else{
-					swal ( "Oops", response.data.message, "error");
-				}
-			});
-
-      },
-   
-   	popUpLogin(){
-            let session_key = localStorage.getItem("session_key");
-            let phone = $('#popupphone').val();
-            let password  = $('#popuppassword').val();
-   			let formData = new FormData();
-   			formData.append('phone', phone);
-   			formData.append('password', password);
-   			formData.append('session_key', session_key);
-            session_key
-   			if(phone == '' && password == ''){
-   				swal({
-   				  title: "Phone number and password is required.",
-   				  icon: "error",
-   				  timer: 3000
-   				});
-   			}else{
-   		      axios.post(this.$baseUrl+'/api/v1/login', formData).then(response =>{
-                     let user = response.data.customer;
-                     this.$store.commit('SET_USER', user);
-                     this.$store.commit('SET_AUTHENTICATED', true);
-                     localStorage.setItem("auth", true);
-                     localStorage.setItem("token", response.data.token);
-                     localStorage.setItem("user_id", response.data.customer.id);
-                     this.$store.dispatch('loadedUser');
-                     this.$store.dispatch('loadedCart');
-                     this.$store.dispatch('loadedCompares');
-                     this.$store.dispatch('loadedNotifications');
-                     $('.close').trigger('click');
-   				}).catch(function(){
-   				  swal ( "Oops" ,  'Phone number or password does not match.',  "error" );
-   				});
-   				
-   			}
-         
-   		},
-      */
        imageLoadError(event){
              event.target.src = "/images/notfound.png";
        },
@@ -2243,7 +2355,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
          this.$store.dispatch('loadedUsableVoucher');
 
          localStorage.setItem("token", false);
-         this.$router.push({name:'login'});
+         this.$router.push({name:'sign-up'});
        },
        load_categories(){
          let axiosConfig = {
@@ -2262,7 +2374,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
              'X-localization': localStorage.getItem('lang')
            }
          }
-         axios.get(this.$baseUrl+'/api/v1/site-info', axiosConfig).then(response => {
+         axios.get(this.$baseUrl+'/api/v1/site-info?upazail_id='+localStorage.getItem('upazail_id'), axiosConfig).then(response => {
             this.site_info = response.data;
             this.navbars = response.data.navbars
             if(this.site_info.social_login == 1){
@@ -2278,7 +2390,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
          let searchContent = $('.searchContent').val();
 
          if(searchContent.length > 2){
-           axios.get(this.$baseUrl+'/api/v1/get-search-suggetion/'+searchContent).then(response => {
+            axios.get(this.$baseUrl+'/api/v1/get-search-suggetion/'+searchContent+'?upazila_id='+localStorage.getItem('upazail_id')).then(response => {
              this.suggetionProduct = response.data;
              if(response.data.status == 1){
                $('.search_suggest_wrapper').show();
@@ -2300,7 +2412,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
          let searchContent = $('.mobileSearchContent').val();
 
          if(searchContent.length > 2){
-           axios.get(this.$baseUrl+'/api/v1/get-search-suggetion/'+searchContent).then(response => {
+           axios.get(this.$baseUrl+'/api/v1/get-search-suggetion/'+searchContent+'?upazila_id='+localStorage.getItem('upazail_id')).then(response => {
              this.suggetionProduct = response.data;
              if(response.data.status == 1){
                $('.mobile_search_suggest_wrapper').show();
@@ -2325,6 +2437,11 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
        loading_method(){
    		 this.loading = true;
    	},
+      showLoginPopup(){
+         jQuery('#popupLoignModal').trigger('click');
+         return true;
+      },
+
       proceedToPay(){
             let collectedVoucher = '';
             let usedVoucher = '';
@@ -2450,17 +2567,6 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
    
            calculateFinalAmount(){
                calculateShipping();
-                  //  let subTotal = Number(jQuery('.data_sub_total').attr('data-subtotal-amount'));
-                  //  let shippingCost = Number(jQuery('.shipping_cost_li').attr('data-shipping-cost'));
-
-                  //  let packagingCost = Number(jQuery('.data_packaging_cost').attr('data-packaging-cost-amount'));
-                  //  let securityCost = Number(jQuery('.data_security_charge').attr('data-security-charge-amount'));
-
-                  //  let couponAmount = jQuery('.coupon_discount').attr('data-coupon-discount') ? Number(jQuery('.coupon_discount').attr('data-coupon-discount')) : 0;
-                  //  let voucherAmount = jQuery('.show_voucher_discount').attr('data-voucher-discount') ? Number(jQuery('.show_voucher_discount').attr('data-voucher-discount')) : 0;
-                  //  this.finalCalculatedTotal = (subTotal+shippingCost+packagingCost+securityCost) - (couponAmount+voucherAmount);
-                  //  $('.calculatedTotal').text(this.finalCalculatedTotal);
-   
            },
          imageLoadError(event){
    			event.target.src = "/images/notfound.png";
@@ -2493,6 +2599,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
                            timer: 3000
                        });
                        this.$store.dispatch('loadedUser');
+                       this.$store.dispatch('loadedCart');
                        jQuery('a[href="#home"]').trigger('click');
                    }else{
                        this.errors = response.data.message;
@@ -2516,6 +2623,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
    				if(response.data.status == 1){
                        this.$store.dispatch('loadedCart');
                        this.$store.dispatch('loadedUser');
+                       this.$store.dispatch('loadedCart');
                        jQuery('.close').trigger('click');   
                   }else{
                        swal ( "Please check" ,  response.data.message,  "error");
@@ -2526,8 +2634,8 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
    
    
            async getDistrict(){
-           let id =  jQuery('#division0').find('option:selected').val();
-           await axios.get(this.$baseUrl + "/api/v1/get-district/"+id).then((response) => {
+               let id =  jQuery('#division0').find('option:selected').val();
+               await axios.get(this.$baseUrl + "/api/v1/get-district/"+id).then((response) => {
                    this.upazilas = {};
                    this.unions = {};
                    this.districts = response.data;
@@ -2540,12 +2648,12 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
                        this.unions = {};
                        this.upazilas = response.data;
                    });
-               },
-               async getUnion(){
-                   let id =  jQuery('#upazila0').find('option:selected').val();
+            },
+            async getUnion(){
+               let id =  jQuery('#upazila0').find('option:selected').val();
                await axios.get(this.$baseUrl + "/api/v1/get-union/"+id).then((response) => {
-                       this.unions = response.data;
-                   });
+                  this.unions = response.data;
+               });
            },
    
    
@@ -2565,7 +2673,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
                    if(response.data.status == 1){
                        this.coupon_discount = response.data;
                        jQuery('.coupon_discount').attr('data-coupon-discount',response.data.amount);
-   
+                        
                        jQuery('#addCouponBlock').hide();
                        jQuery('.coupon_discount').show();
                        this.calculateFinalAmount();
@@ -2744,7 +2852,7 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
                   }
                }
                return res;
-         }
+         },
      },
       watch:{
        $route(to, from){
@@ -2764,6 +2872,18 @@ import jquery from '../../../../../../public/assets/js/jquery.js';
        
      },
      mounted(){
+      // var upazail_id = localStorage.getItem("upazail_id");
+      // if(!upazail_id || upazail_id == 'null'){
+      //    window.onload = function () {
+      //       OpenBootstrapPopup();
+      //    };
+      //    function OpenBootstrapPopup() {
+      //       $("#location_modal").modal('show');
+      //    }
+      // }
+      this.getLocationDistrict(); 
+
+      this.affiliate_referer = localStorage.getItem("affiliate_referer") ?? '';
       this.$store.dispatch('loadedNotifications');
       this.$store.dispatch('loadedWishlist');
       this.save_search_content();

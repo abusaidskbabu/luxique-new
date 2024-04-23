@@ -173,6 +173,9 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
         Route::post('/order', 'Backend\PosController@order_function');
 
         Route::get('/order/summary/{id}', 'Backend\PosController@getOrderSummary')->name('admin.pos.order.summary');
+
+        Route::get('/get-customers', 'Backend\PosController@getCustomers')->name('admin.pos.get.customers');
+
     });
 
     //Attribute Routes for admin
@@ -616,15 +619,19 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
         Route::post('/update/{id}', 'Backend\FlashDealsController@update')->name('admin.flash_deal.update');
         Route::get('/delete/{id}', 'Backend\FlashDealsController@delete')->name('admin.flash_deal.delete');
         Route::post('/re/order', 'Backend\FlashDealsController@reorder')->name('admin.flash_deal.reorder');
-
         Route::get('/get/products/{id}', 'Backend\FlashDealsController@getProducts')->name('admin.flash_deal.get.products');
-
         Route::get('/send/pushnotification/{id}', 'Backend\FlashDealsController@sendPushNotification')->name('admin.flash_deal.send.pushnotification');
-
         Route::get('/send/sms/{id}', 'Backend\FlashDealsController@sendSms')->name('admin.flash_deal.send.sms');
     });
 
-
+    Route::group(['prefix' => '/single-product-offer'], function () {
+        Route::get('/', 'Backend\SigleProductOfferController@index')->name('admin.single.product.offer');
+        Route::get('/create', 'Backend\SigleProductOfferController@create')->name('admin.single.product.offer.create');
+        Route::post('/store', 'Backend\SigleProductOfferController@store')->name('admin.single.product.offer.store');
+        Route::get('/delete/{id}', 'Backend\SigleProductOfferController@delete')->name('admin.single.product.offer.delete');
+        Route::get('/edit/{id}', 'Backend\SigleProductOfferController@edit')->name('admin.single.product.offer.edit');
+        Route::post('/update/{id}', 'Backend\SigleProductOfferController@update')->name('admin.single.product.offer.update');
+    });
 
 
     //Trash Routes for admin

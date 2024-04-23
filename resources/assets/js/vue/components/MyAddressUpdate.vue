@@ -102,9 +102,9 @@
                                         </div>
                                         <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="">{{ $t('Union / Area') }}<span style="color:#f00">*</span></label>
-                                                        <select name="union" id="union2" class="form-control" required>
-                                                            <option >--Select Union--</option>
+                                                    <label for="">{{ $t('Union / Area') }}</label>
+                                                        <select name="union" id="union2" class="form-control" >
+                                                            <option value="0">--Select Union--</option>
                                                             <option v-if="autoselect_union" data-removeable="true" v-for="(union, index) in selected_address.union" :key="index" :value="union.id" :selected="singleAddress.shipping_union == union.id">{{union.title}}</option>
                                                             <option data-removeable="true" v-for="(union,index) in unions" :key="index" :value="union.id">{{union.title}}</option>
                                                             
@@ -114,8 +114,8 @@
                                         </div>
                                         <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="">{{ $t('Post code') }}<span style="color:#f00">*</span></label>
-                                                   <input :value="singleAddress.shipping_postcode" type="text" class="form-control popup_post_code2" :placeholder="$t('Post code')+'..'" required>
+                                                    <label for="">{{ $t('Post code') }}</label>
+                                                   <input :value="singleAddress.shipping_postcode" type="text" class="form-control popup_post_code2" :placeholder="$t('Post code')+'..'" >
                                                    <div class="validation_error" v-if="errors.shipping_postcode" v-html="errors.shipping_postcode[0]" />
                                                 </div>
                                         </div>
@@ -129,7 +129,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label for=""> {{ $t('Address') }} <span style="color:#f00">*</span></label>
-                                                <textarea :value="singleAddress.shipping_address" name="" id="" cols="30" rows="3" class="form-control shipping_address2"  :placeholder="$t('Address')+'..'"  required></textarea>
+                                                <textarea :value="singleAddress.shipping_address" name="" id="" cols="30" rows="3" class="form-control shipping_address2"  :placeholder="$t('Road , house, address')+'..'"  required></textarea>
                                                 <div class="validation_error" v-if="errors.shipping_address" v-html="errors.shipping_address[0]" />
                                             </div>
                                         </div>

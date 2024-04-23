@@ -9,6 +9,7 @@
 					<div class="brand_banner_bg" v-bind:style="{ 'background-image': 'url(' + baseurl+sellerBanner + ')' }">
 						<div class="row">
 							<div class="col-md-4 brand_logo">
+								<img @error="imageLoadError" :src="baseurl+'/'+sellerLogo">
 							</div>
 							<div class="col-md-4"></div>
 							<div class="col-md-4"></div>
@@ -31,7 +32,7 @@
 
 <section class="shop_section" id="register-page">
 	<div class="container">
-		<div v-if="ProductBySeller.total > 0" class="row search_products">
+		<!-- <div v-if="total_products > 0" class="row search_products"> -->
 			<div v-for="(data, index) in ProductBySeller.data" :key="index" class="col-6 col-sm-6 col-md-3 col-lg-2">
 				<div class="search_single_item">
 					<div class="search_image">
@@ -57,11 +58,11 @@
 			</div>
 		</div>
 
-		<div  v-else class="row promotion_page">
+		<!-- <div  v-else class="row promotion_page">
 			<div class="col-md-12">
 				<img @error="imageLoadError" :src="baseurl+'/assets/images/product-not-found.png'" alt="">
 			</div>
-		</div>
+		</div> -->
 
 		<div class="profile_section p-0" id="vendor_profile_page">
 			<div class="col-md-12 profile_main_review">
@@ -381,6 +382,7 @@ export default {
 		return{
 			name:'',
 			productLength:'',
+			total_products:0,
 			ProductBySeller:{},
 			SellerProfile:'',
 			baseurl:'',
@@ -443,6 +445,7 @@ export default {
 			let slug = this.$route.params.slug;
 			axios.get(this.$baseUrl+'/api/v1/get-products-by-seller-slug/'+slug).then(response => {
 				this.ProductBySeller = response.data.product;
+				this.total_products = response.data.total_products;
 				this.ratings = response.data.ratings;
 				this.SellerProfile = response.data.profile;
 				this.sellerLogo= response.data.profile.shopinfo.logo;
@@ -497,7 +500,7 @@ export default {
 		this.scrollToTop();
 		this.load_products_by_shop_slug();
 		this.baseurl = this.$baseUrl;
-		document.title = "LuxiQue | Shop"; 
+		document.title = "MabiY | Shop"; 
 		this.load_seller_products_comments();
 	}
 }

@@ -1831,7 +1831,7 @@ class ProductsController extends Controller
 
             
             ->editColumn('order_id', function ($row) {
-                return 'KB'.date('y',strtotime($row->created_at)).$row->order_id;
+                return 'MS'.date('y',strtotime($row->created_at)).$row->order_id;
             })
 
             ->addColumn('saller', function ($row) {

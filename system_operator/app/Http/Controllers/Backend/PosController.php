@@ -24,6 +24,7 @@ use Auth;
 use DB;
 use Hash;
 use Helper;
+use Illuminate\Support\Facades\Validator;
 
 class PosController extends Controller
 {
@@ -42,7 +43,8 @@ class PosController extends Controller
         if (is_null($this->user) || !$this->user->can('pos.view')) {
             return redirect()->route('admin.index')->with('failed', 'You don\'t have enough privileges to perform this action!');
         }
-        $customers = User::orderBy('name', 'asc')->get();
+        
+        
         $products = Product::orderBy('id', 'desc')->where('is_active',1)->where('product_qc',1)->where('is_deleted', 0)->with('seller')->limit(20)->paginate(8);
 
         $pickpoint_address = Pickpoints::where('status', 1)->with('division', 'district', 'upazila', 'union')->get();
@@ -60,10 +62,19 @@ class PosController extends Controller
                       ->orwhere('type', 'bank');
             })->get();
         }
+		
+		$top_selling_products = DB::table('order_details')
+							->join('admins', 'order_details.seller_id', '=', 'admins.id')
+							->join('products', 'order_details.product_id', '=', 'products.id')
+							->select('products.*', 'admins.name')
+							->groupBy('order_details.product_id')
+							->orderByDesc(DB::raw('SUM(order_details.product_qty)'))
+							->paginate(9);
 
         $data = [
-            'customers'  => $customers,
+            // 'customers'  => $customers,
             'products'  => $products,
+            'top_selling_products'  => $top_selling_products,
             'pickpoint_address'  => $pickpoint_address,
             'mfs_and_bank'  => $mfs_and_bank,
         ];
@@ -71,15 +82,35 @@ class PosController extends Controller
         return view('backend.pages.product.pos')->with($data);
     }
 
+    public function getCustomers(Request $request){
+        $customers = User::select('id', 'name', 'phone')->orderBy('name', 'asc')->get();
+        $html = '';
+        foreach($customers as $customer){
+            // $isSelected = ($customer->id == $request->current_user) ? "selected" : "";
+            $isSelected = "";
+            $html .= '<option value="'.$customer->id.'" ' . $isSelected . '>'.$customer->name.' - '.$customer->phone.'</option>';
+        }
+        return $html;
+    }
+
 
     public function customerCreat(Request $request)
     {
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required | max:191 | string',
             'email' => 'nullable | unique:users',
             'phone' => 'required | max:15 | string | unique:users'
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'type' => 'Error',
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
 
         $user = new User;
         $user->name = $request->name;
@@ -91,7 +122,14 @@ class PosController extends Controller
         $user->status = 1;
         $user->save();
 
-        return redirect()->route('admin.pos')->with('success', 'User successfully created!');
+        return response()->json([
+            'type' => 'success',
+            'message' => 'User successfully created!',
+            'user_id' => $user->id,
+        ]);
+
+        // session(['added_user' => $user->id]);
+        // return redirect()->route('admin.pos')->with('success', 'User successfully created!');
     }
 
     public function customerShippingAddress()
@@ -306,6 +344,7 @@ class PosController extends Controller
                             }
 
                             //Validate Price for Simple product
+                            $data['base_price'] = $product->price ?? 0.00;
                             $data['price'] = \Helper::price_after_offer($product->id);
                             // $data['discount'] = \Helper::discount_amount_by_IDS($product->id) * $qty;
                             $data['discount'] = 0;
@@ -440,6 +479,7 @@ class PosController extends Controller
                             $now_price =  \Helper::price_after_offer($product->id);
 
                             //Product is available to add to cart
+                            $data['base_price'] = $product->price ?? 0.00;
                             $data['price'] = $now_price;
                             // $data['discount'] = \Helper::discount_amount_by_IDS($product->id) * $qty;
                             $data['discount'] = 0;
@@ -558,6 +598,8 @@ class PosController extends Controller
                             $qty = $request->qty ? $request->qty : $already_in_cart->qty;
                             $availableOptions = \Helper::variable_product_stock($request->product_id, $qty, $variable_option);
                             if ($availableOptions) {
+                                
+
                                 $productPrice = \Helper::price_after_offer($product->id) + $availableOptions['totalAdditional'];
                                 // $data['price'] = $productPrice;
                                 // $data['discount'] = \Helper::discount_amount_by_IDS($product->id) * $qty;
@@ -593,8 +635,13 @@ class PosController extends Controller
                                 $availableOptions = \Helper::variable_product_stock($request->product_id, $qty, $variable_option);
 
                                 if ($availableOptions) {
+                                    
                                     //Product is available to add to cart
+                                    $data['base_price'] = ($availableOptions['totalAdditional'] == 0) ? $product->price : ($product->price + $availableOptions['totalAdditional']);
+
+                                    // $productPrice = \Helper::price_after_offer($product->id) + \Helper::getDiscountByAditionalPrice($product->special_price_type, $product->special_price, $availableOptions['totalAdditional']);
                                     $productPrice = \Helper::price_after_offer($product->id) + $availableOptions['totalAdditional'];
+                                    
                                     $data['price'] = $productPrice;
                                     // $data['discount'] = \Helper::discount_amount_by_IDS($product->id) * $qty;
                                     $data['discount'] = 0;
@@ -759,7 +806,7 @@ class PosController extends Controller
         $vat = 0;
         $discount = 0;
         $total = 0;
-        $balance = User::find($id)->balance;
+        $balance = User::find($id)->balance ?? 0;
         if (count($carts) > 0) {
             $html .= '
                     <table class="table shopping-cart-wrap table-responsive">
@@ -777,7 +824,7 @@ class PosController extends Controller
             foreach ($carts as $cart) {
                 $product = Product::find($cart->product_id);
 
-                $subtotal = $subtotal + ($cart->price * $cart->qty);
+                $subtotal = $subtotal + (($cart->price) * $cart->qty);
                 $discount = $discount + $cart->discount;
                 $vat = $vat + $cart->vat + $product->vat ;
 
@@ -832,7 +879,11 @@ class PosController extends Controller
                         </td>
                         
                         <td> 
-                            <div class="price-wrap"> 
+                            <div class="price-wrap"> ';
+                                    if($cart->base_price > $cart->price){
+                                        $html .='<b> BDT <del> '.$cart->base_price.'</del></b>';
+                                    }
+                                    $html .='
                                     <b class="price">BDT ' . $cart->price . '</b> <button type="button" class="btn-info cart_product_price_update " title="Update Price" data-unit-price="'.$cart->price.'" data-id="'.$cart->id.'"><i class="mdi mdi-plus text-light"></i></button> </br> 
                                     <b class="price">BDT ' . $cart->discount . ' (Discount)</b><br>
                                     <b class="price">BDT ' . $cart->vat . ' (Vat)</b>
@@ -840,7 +891,7 @@ class PosController extends Controller
                         </td>
                         <td> 
                             <div class="price-wrap"> 
-                            <b class="price">BDT ' . (($cart->price + $cart->packaging_cost + $cart->security_charge - $cart->discount + $cart->vat) * $cart->qty) . '</b>
+                            <b class="price">BDT ' . (($cart->price + $cart->packaging_cost + $cart->security_charge + $cart->vat) * $cart->qty) . '</b>
                             </div> 
                         </td>
                         <td class="text-center"> 
@@ -1090,14 +1141,22 @@ class PosController extends Controller
                         $SellerWiseGroup[$single_item->seller_id]['items'][] = $single_item;
                     }
                 }
-                if($request->address){
+
+                if($request->address_type == 'pickpoint'){
+                    $address = Pickpoints::find($request->address);
+                    $recipient_city = District::find($address->district_id)->city_id ?? ''; 
+                    $recipient_zone = Upazila::find($address->upazila_id)->zone_id ?? '';
+                }elseif($request->address && $request->address_type != 'pickpoint'){
                     $address = Addresses::find($request->address); 
+                    $recipient_city = District::find($address->shipping_district)->city_id ?? ''; 
+                    $recipient_zone = Upazila::find($address->shipping_thana)->zone_id ?? '';
                 }else{
                     $address = Addresses::find($user->default_address_id); 
+                    $recipient_city = District::find($address->shipping_district)->city_id ?? ''; 
+                    $recipient_zone = Upazila::find($address->shipping_thana)->zone_id ?? '';
                 }
                         
-                $recipient_city = District::find($address->shipping_district)->city_id ?? ''; 
-                $recipient_zone = Upazila::find($address->shipping_thana)->zone_id ?? '';
+                
 
                 foreach($SellerWiseGroup as $group){
                     
@@ -1114,11 +1173,13 @@ class PosController extends Controller
                         if((\Helper::convertProductWeightToKg($single_item->product_id) * $single_item->qty) >= 0.1){
                             $item_weight = $item_weight + (\Helper::convertProductWeightToKg($single_item->product_id) * $single_item->qty);
                         }else{
-                            $item_weight = $item_weight + (0.1 * $single_item->qty);
+                            $item_weight = $item_weight + (\Helper::convertProductWeightToKg($single_item->product_id) * $single_item->qty);
                         }
                     }
+                    // return $item_weight;
 
-                    $calculate_price = \Helper::calculateShippingCost($store_id, $item_type, $delivery_type, $item_weight, $recipient_city, $recipient_zone);
+                    $calculate_price = \Helper::calculateShippingCost($store_id, $item_type, $delivery_type, ($item_weight <= 0.1) ? 0.1 : $item_weight, $recipient_city, $recipient_zone);
+                    // return $calculate_price;
                     if($calculate_price->type == 'success'){
                         $shipping_cost = $shipping_cost + ($calculate_price->data->price - $calculate_price->data->discount) + $calculate_price->data->additional_charge - $calculate_price->data->promo_discount;
                     }
@@ -1278,7 +1339,7 @@ class PosController extends Controller
 					if ($qty == 1) {
 						$packaging_cost += $cart->packaging_cost * $cart->qty;
 						$security_charge += $cart->security_charge * $cart->qty;
-						$discount_amount += $discount_amount + $cart->discount;
+						// $discount_amount += $discount_amount + $cart->discount;
 					} else {
 						$data['status'] = 0;
 						$data['message'] = 'Product is out of stock.';
@@ -1326,7 +1387,8 @@ class PosController extends Controller
 
 			$orderData['vat'] = $vat;
 			$orderData['user_id'] = $user_id;
-			$orderData['address_id'] = $user->default_address_id ?? null;
+			$orderData['address_id'] = $request->address ?? $pickpoint->id;
+			$orderData['is_pickpoint'] = ($request->address_type == 'pickpoint') ? 1 : 0;
 			$orderData['payment_id'] = uniqid();
 			$orderData['ip_address'] = request()->ip();
 			$orderData['note']    = $request->note;
@@ -1345,7 +1407,9 @@ class PosController extends Controller
 				$detailsData['product_sku'] = ($product->sku) ? $product->sku : $single_item->variable_sku;
 				$detailsData['vat'] = ($single_item->price*$product->vat)/100 * $single_item->qty;
 				$detailsData['product_qty'] = $single_item->qty;
-				$detailsData['price'] = $single_item->price ?? null;
+				$detailsData['base_price'] = $single_item->base_price ?? 0.00;
+				$detailsData['price'] = $single_item->price ?? 0.00;
+				$detailsData['discount'] = $single_item->discount ?? 0.00;
 				$detailsData['is_promotion'] = $product->is_promotion;
 				$detailsData['loyalty_point'] = $product->loyalty_point ?? 0;
                 $detailsData['shipping_method'] = 'pick_point';
@@ -1447,7 +1511,7 @@ class PosController extends Controller
 			foreach ($sellers_id_for_order as $key => $val) {
 				$seller = Admins::find($val);
 				\Helper::sendPushNotification($val, 2, 'Order Placed', 'Order placed successfully!', json_encode($message));
-				\Helper::sendSms($seller->phone, 'একটি নতুন অর্ডার সফলভাবে স্থাপন করা হয়েছে! অর্ডার আইডি হল  #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
+				// \Helper::sendSms($seller->phone, 'একটি নতুন অর্ডার সফলভাবে স্থাপন করা হয়েছে! অর্ডার আইডি হল  #' . 'MS' . date('y', strtotime(Carbon::now())) . $order_id);
 			}
 
 			// Customer

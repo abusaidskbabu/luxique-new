@@ -40,7 +40,7 @@
                                 <img class="shop_logo" @error="imageLoadError"  :src="thumbnailUrl+'/'+seller.logo" alt="shop logo">
                             </div>
                             <div class="col-7 col-sm-7 col-md-7 col-md-7 rating-section">
-                                <router-link :title="seller.name" :to="{ name: 'shop', params: {slug: seller.slug } }" class="visit_store_a_link"><b>{{ seller.name }}</b></router-link>
+                                <b>{{ seller.name }}</b>
                                 <ul>
                                     <div class="star-rating average_percentage">
                                         <span :style="'width: '+parseInt(seller.ratings.seller_ratings)+'%'"></span>

@@ -14,7 +14,7 @@
               <div class="col-12 grid-margin">
                 <div class="card">
                   <div class="card-body">
-                  <form class="form-sample" method="post" action="{{ route('admin.pick_points.store')}}" enctype="multipart/form-data" >
+                  <form class="form-sample" method="post" action="{{ route('admin.pick_points.update', $pick_point->id)}}" enctype="multipart/form-data" >
                     @csrf
                     <div class="row">
 
@@ -45,7 +45,7 @@
                               <select class="form-control" @error('division_id') is-invalid @enderror name="division_id"  data-show-subtext="true" data-live-search="true" name="shop_division" id="division_id">
                                 <option>Select Division</option>
                                 @foreach(App\Models\Division::orderBy('title','asc')->get() as $division)
-                                  <option value="{{ $division->id }}">{{ $division->title }}</option>
+                                  <option value="{{ $division->id }}" @if($pick_point->division_id == $division->id) selected @endif>{{ $division->title }}</option>
                                 @endforeach
                               </select>
                             

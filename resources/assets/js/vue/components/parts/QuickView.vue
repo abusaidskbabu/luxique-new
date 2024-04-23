@@ -12,7 +12,7 @@
                                         <div class="col-md-6">
                                             <div class="mycontainer quick_view">
                                                 <div class="zoom-show" :href="baseurl+'/'+data.default_image">
-                                                    <img :data-src="baseurl+'/'+data.default_image" :data-image-section="data.id" class="showImage" style="object-fit: contain;"/>
+                                                    <img @error="imageLoadError" :data-src="baseurl+'/'+data.default_image" :data-image-section="data.id" class="showImage" style="object-fit: contain;"/>
                                                 </div>
                                                 <div class="small-img" v-if="data.gallery_images">
                                                     <img src="/images/online_icon_right@2x.png" class="icon-left previewImage" alt="" :data-section-id="data.id"/>
@@ -60,7 +60,7 @@
                                                         </span>
                                                         <span v-if="data.special_price_type == 2">
                                                             <span v-if="parseInt(data.price_after_offer.replace(/,/g, ''))  < parseInt(data.price.replace(/,/g, ''))" >
-                                                                <<del> <small>BDT {{ data.price }}</small> </del>
+                                                                <del> <small>BDT {{ data.price }}</small> </del>
                                                             </span>
                                                         </span>
                                                     </div>
@@ -115,10 +115,10 @@
     
                                                 <div class="row">
                                                     <div class="col-md-12 productSize">
-                                                        <span v-for="(metas, index) in data.meta" :key="index"> 
+                                                        <span v-for="(metas, index) in data.meta" :key="'AB'+index"> 
                                                             <span v-if="metas.meta_key == 'custom_options'">
     
-                                                                <span v-for="(val, index) in metas.meta_value" :key="index"> 
+                                                                <span v-for="(val, index) in metas.meta_value" :key="'AC'+index"> 
                                                                     
                                                                     <div v-if="data.hidden_option[val.title]" class="row">
                                                                         <!--Radio-->
@@ -131,7 +131,7 @@
                                                                                 </div>
     
                                                                                 <ul>
-                                                                                    <li v-for="(option, index) in val.value" :key="index" v-if="option.qty > 0"> 
+                                                                                    <li v-for="(option, index) in filteredOptions" :key="'AD'+index">
                                                                                         
                                                                                         <div class="radio_image">
                                                                                             <span v-if="option.variant_image">
@@ -156,13 +156,11 @@
                                                                             
                                                                             <select class="form-control variant_dropdwon">
                                                                                 <option value="0" disabled selected>-Select {{val.title}}-</option>
-                                                                                
-                                                                                <option v-for="(option, index) in val.value" v-if="option.qty > 0"
-                                                                                    :value="option.title" 
-                                                                                    :data-variable-qty="option.qty" 
-                                                                                    :data-dropdownprice="option.price" 
-                                                                                    :key="index">
-                                                                                    {{ option.title+' (+BDT '+option.price+')' }}
+                                                                                <option v-for="(option, index) in variant_dropdwons" :key="'AE'+index"
+                                                                                        :value="option.title"
+                                                                                        :data-variable-qty="option.qty"
+                                                                                        :data-dropdownprice="option.price">
+                                                                                    {{ option.title + ' (+BDT ' + option.price + ')' }}
                                                                                 </option>
                                                                             </select>
                                                                         </div>
@@ -234,7 +232,7 @@
     
                                                 
     
-                                                <span v-for="(meta,index) in data.meta" :key="index">
+                                                <span v-for="(meta,index) in data.meta" :key="'AF'+index">
                                                         <span v-if="meta.meta_key == 'product_sale_option'">
                                                             <span v-if="meta.meta_value == 'digital'">
                                                                     <div class="row">
@@ -305,9 +303,9 @@
                                                                         <a class="nav-link quickview_specification" data-toggle="tab" href="#specification" role="tab" aria-controls="specification" aria-selected="false"> {{ $t('Specification') }}</a>
                                                                     </li>
     
-                                                                    <span v-for="(metas, index) in data.meta" :key="index"> 
+                                                                    <span v-for="(metas, index) in data.meta" :key="'AG'+index"> 
                                                                     <span v-if="metas.meta_key == 'tab_option'">
-                                                                    <span v-for="(val, index) in metas.meta_value" :key="index"> 
+                                                                    <span v-for="(val, index) in metas.meta_value" :key="'AH'+index"> 
                                                                         <li class="dynamic_nav_item" role="presentation">
                                                                             <a class="dynamic_nav_link" :data-id="index" data-toggle="tab"> {{ val.tab_option_title }}</a>
                                                                         </li>
@@ -317,19 +315,19 @@
                                                                 </ul>
                                                                 <div class="tab-content">
                                                                     <div class="tab-pane quickview_description_tab fade show active" role="tabpanel" aria-labelledby="description">
-                                                                        <div v-html="data.description"></div>
+                                                                        <div property="schema:description" v-html="data.description"></div>
                                                                     </div>
                                                                     <div class="tab-pane quickview_specification_tab fade" role="tabpanel" aria-labelledby="specification">
                                                                  
-                                                                        <span v-for="(sp, index) in data.specification" :key="index">
+                                                                        <span v-for="(sp, index) in data.specification" :key="'AI'+index">
                                                                             <p v-if="sp.meta_value"> 
                                                                                 <strong class="text-capitalize">{{ sp.meta_key.replace(/_/g, " ") }}</strong> : {{sp.meta_value}} 
                                                                             </p> 
                                                                         </span>
                                                                     </div>
-                                                                    <span v-for="(metas, index) in data.meta" :key="index"> 
+                                                                    <span v-for="(metas, index) in data.meta" :key="'AI'+index"> 
                                                                     <span v-if="metas.meta_key == 'tab_option'">
-                                                                    <span v-for="(val, index) in metas.meta_value" :key="index"> 
+                                                                    <span v-for="(val, index) in metas.meta_value" :key="'AJ'+index"> 
                                                                         <div :class="'all_item dynamic_section_'+index" role="tabpanel">
                                                                             <p>{{ val.tab_option_description }}</p>
                                                                         </div>
@@ -370,13 +368,17 @@
                 baseurl:'',
                 thumbnailUrl:'',
                 calculated_in_stock:true,
-                calculated_price: '',
+                calculated_price: 0,
                 discount_Percentage: '',
                 AllRating: '',
             }
         },
         props:['data'],
         methods:{
+                imageLoadError(event){
+                    event.target.src = "/images/notfound.png";
+                },
+    
                 restockRequest(product_id){
                     $('.disabledbtn'+product_id).attr('disabled', true);
                     $('.disabledbtn'+product_id).html('<div class="spinner-border spinner-border-sm"></div>');
@@ -627,6 +629,14 @@
     
             }
     
+        },
+        computed: {
+            filteredOptions() {
+                return this.val.value.filter(option => option.qty > 0);
+            },
+            variant_dropdwons() {
+                return this.val.value.filter(option => option.qty > 0);
+            }
         },
         mounted(){
             this.baseurl = this.$baseUrl;

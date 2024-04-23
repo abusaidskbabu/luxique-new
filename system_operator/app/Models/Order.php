@@ -27,7 +27,7 @@ class Order extends Model
 
     // public function getIdAttribute()
     // {
-    //   return 'KB' . date('y', strtotime($this->created_at)). $this->id;
+    //   return 'MS' . date('y', strtotime($this->created_at)). $this->id;
     // }
     public function user()
     {

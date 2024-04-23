@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendSms;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Payments;
 use App\Models\UserSearch;
 use App\Models\NewsletterSubscribtion;
 use Auth;
+use Exception;
 use Helper;
 use Yajra\DataTables\DataTables;
 
@@ -47,18 +49,28 @@ class MarketingController extends Controller
     {
         if ($request->channel == 'sms') {
             $sms = $request->message_body;
-            if (in_array('-1', $request->customer)) {
-                // SEND SMS TO ALL USER 
-                foreach (User::where('is_deleted', 0)->where('status', 1)->get() as $row) {
-                    $smsReponse = Helper::sendSms($row->phone, $sms);
+            try {
+                $usersQuery = User::where('is_deleted', 0)->where('status', 1);
+            
+                if (!empty($request->customer) && in_array('-1', $request->customer)) {
+                    // SEND SMS TO ALL USERS 
+                    $users = $usersQuery->get();
+                } else {
+                    // SEND SMS TO SELECTED USERS 
+                    $users = $usersQuery->whereIn('id', $request->customer)->get();
                 }
-                return redirect()->back()->with('success', 'SMS successfully sended!');
-            } else {
-                // SEND SMS TO SELECTED USERS 
-                foreach (User::whereIn('id', $request->customer)->where('is_deleted', 0)->where('status', 1)->get() as $row) {
-                    $smsReponse = Helper::sendSms($row->phone, $sms);
+            
+                if ($users->isEmpty()) {
+                    throw new Exception("No users found to send SMS.");
                 }
-                return redirect()->back()->with('success', 'SMS successfully sended!');
+                
+                foreach ($users as $row) {
+                    dispatch(new SendSms($row->phone, $sms, $request->gateway_option));
+                }
+                
+                return redirect()->back()->with('success', 'SMS successfully sent!');
+            } catch (Exception $e) {
+                return redirect()->back()->with('error', $e->getMessage());
             }
         } else {
             $data = $request->email_body;

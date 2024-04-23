@@ -106,16 +106,28 @@
             <div>
                 <h2 style="padding-left: 9pt; text-indent: 0pt; text-align: left;">Bill To, 
                     <br>
-                    <span style="font-weight: 600;"> Name: </span>  {{$order->address->shipping_first_name.' '.$order->address->shipping_last_name}}
-                    <br>
-                    <span style="font-weight: 600;">  HP: </span>  {{$order->address->shipping_phone}}
-                    <br>
-                    <span style="font-weight: 600;">  E-mail: </span>  {{$order->address->shipping_email}}
-                    <span style="font-weight: 600;">  Address: </span> 
-                    {{$order->address->shipping_address}}, <br>{{$order->address->union->title ?? ''}}, 
-                    {{$order->address->upazila->title ?? ''}},
-                    {{$order->address->district->title ?? ''}},
-                    {{$order->address->division->title ?? ''}}
+                    @if($order->is_pickpoint == 1)
+                        <span style="font-weight: 600;"> Name: </span>  {{$order->user->name ?? ''}}
+                        <br>
+                        <span style="font-weight: 600;">  Phone: </span>  {{ $order->user->phone ?? ''}}
+                        <br>
+                        <span style="font-weight: 600;">  E-mail: </span>  {{$order->user->email ?? ''}}
+                        <br>
+                        <span style="font-weight: 600;">  Address: </span> 
+                        {{$order->pickpoint_address->address}}, <br>{{$order->pickpoint_address->union->title ?? ''}}, {{$order->pickpoint_address->upazila->title ?? ''}},{{$order->pickpoint_address->district->title ?? ''}},{{$order->pickpoint_address->division->title ?? ''}}
+                    @else
+                        <span style="font-weight: 600;"> Name: </span>  {{$order->address->shipping_first_name ?? ''.' '.$order->address->shipping_last_name ?? ''}}
+                        <br>
+                        <span style="font-weight: 600;">  Phone: </span>  {{ $order->address->shipping_phone ?? ''}}
+                        <br>
+                        <span style="font-weight: 600;">  E-mail: </span>  @if(filter_var($order->user->phone, FILTER_VALIDATE_EMAIL)) {{$order->user->shipping_email ?? $order->user->phone ?? ''}} @endif
+                        <br>
+                        <span style="font-weight: 600;">  Address: </span> 
+                        {{$order->address->shipping_address}}, <br>{{$order->address->union->title ?? ''}}, 
+                        {{$order->address->upazila->title ?? ''}},
+                        {{$order->address->district->title ?? ''}},
+                        {{$order->address->division->title ?? ''}}
+                    @endif
                 </h2>
                 
             </div>
@@ -212,6 +224,13 @@
                 $subtotal = 0;
             @endphp
             @foreach($order->order_details as $details)
+                @php
+                    if(\Auth::user()->getRoleNames()[0] == 'seller'){
+                        if(\Auth::id() != $details->seller_id){
+                        continue;
+                        }
+                    }
+                @endphp
                 <tr style="height: 20pt;">
                     <td
                         style="
@@ -244,7 +263,6 @@
                         <p class="s2" style="padding-top: 4pt; padding-left: 4pt; text-indent: 0pt; text-align: left;">
                             {{$details->product->title ?? '' }}
                             @if($details->product->product_type == 'variable' || $details->product->product_type == 'service')
-                                <br>
                                 <small><b>SKU:</b> {{ $details->product_sku }}</small><br>
                                 @php 
                                 $variable_option = json_decode($details->product_options);
@@ -292,7 +310,11 @@
                             border-right-width: 1pt;
                         "
                     >
-                        <p class="s2" style="padding-top: 4pt; padding-left: 23pt; text-indent: 0pt; text-align: left;">{{ number_format((float)$details->price , 2, '.', '') }} Tk</p>
+                        <p class="s2" style="padding-top: 4pt; padding-left: 23pt; text-indent: 0pt; text-align: left;"> 
+                            @if($details->discount)
+                                <del>{{ number_format((float) $details->discount , 2, '.', '') }} Tk</del>
+                            @endif 
+                            {{ number_format((float)$details->price , 2, '.', '') }} Tk</p>
                     </td>
                     <td
                         style="
@@ -307,7 +329,7 @@
                             border-right-width: 1pt;
                         "
                     >
-                        <p class="s2" style="padding-top: 4pt; padding-left: 24pt; padding-right: 23pt; text-indent: 0pt; text-align: center;">{{ number_format((float)$details->product_qty *  $details->price , 2, '.', '') }} Tk</p>
+                        <p class="s2" style="padding-top: 4pt; padding-left: 24pt; padding-right: 23pt; text-indent: 0pt; text-align: center;"> {{ number_format((float)$details->product_qty *  $details->price , 2, '.', '') }} Tk</p>
                         @php $subtotal +=  ($details->product_qty *  $details->price); @endphp
                     </td>
                 </tr>
@@ -410,42 +432,7 @@
                     <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->total_amount , 2, '.', '')}} Tk</p>
                 </td>
             </tr>
-            
-            <tr style="height: 20pt;">
-                <td
-                    style="
-                        width: 436pt;
-                        border-top-style: solid;
-                        border-top-width: 1pt;
-                        border-top-color: #ffffff;
-                        border-left-style: solid;
-                        border-left-width: 1pt;
-                        border-left-color: #ffffff;
-                        border-bottom-style: solid;
-                        border-bottom-width: 1pt;
-                        border-bottom-color: #ffffff;
-                        border-right-style: solid;
-                        border-right-width: 1pt;
-                    "
-                >
-                    <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Total Payable</p>
-                </td>
-                <td
-                    style="
-                        width: 121pt;
-                        border-top-style: solid;
-                        border-top-width: 1pt;
-                        border-left-style: solid;
-                        border-left-width: 1pt;
-                        border-bottom-style: solid;
-                        border-bottom-width: 1pt;
-                        border-right-style: solid;
-                        border-right-width: 1pt;
-                    "
-                >
-                    <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->total_amount - $order->paid_amount , 2, '.', '')}} Tk</p>
-                </td>
-            </tr>
+
             <tr style="height: 20pt;">
                 <td
                     style="
@@ -478,6 +465,43 @@
                     <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->paid_amount , 2, '.', '')}} TK</p>
                 </td>
             </tr>
+            
+            <tr style="height: 20pt;">
+                <td
+                    style="
+                        width: 436pt;
+                        border-top-style: solid;
+                        border-top-width: 1pt;
+                        border-top-color: #ffffff;
+                        border-left-style: solid;
+                        border-left-width: 1pt;
+                        border-left-color: #ffffff;
+                        border-bottom-style: solid;
+                        border-bottom-width: 1pt;
+                        border-bottom-color: #ffffff;
+                        border-right-style: solid;
+                        border-right-width: 1pt;
+                    "
+                >
+                    <p class="s1" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">Due</p>
+                </td>
+                <td
+                    style="
+                        width: 121pt;
+                        border-top-style: solid;
+                        border-top-width: 1pt;
+                        border-left-style: solid;
+                        border-left-width: 1pt;
+                        border-bottom-style: solid;
+                        border-bottom-width: 1pt;
+                        border-right-style: solid;
+                        border-right-width: 1pt;
+                    "
+                >
+                    <p class="s2" style="padding-top: 4pt; padding-right: 3pt; text-indent: 0pt; text-align: right;">{{ number_format((float)$order->total_amount - $order->paid_amount , 2, '.', '')}} Tk</p>
+                </td>
+            </tr>
+            
         </table>
         <p style="text-indent: 0pt; text-align: left;"><br /></p>
         <h2 style="padding-top: 4pt; padding-left: 5pt; text-indent: 0pt; text-align: left;">Note: {{ $order->note }}</h2>
@@ -497,7 +521,13 @@
                 <p style="padding-left: 9pt; text-indent: 0pt; line-height: 11pt; text-align: right;">Customer Signature</p>
             </div>
         </div>
-        
+
+        <table style="width: 650px;text-align:left; margin:50px auto;">
+            <tbody style="text-align: center;">
+                <p style="font-size:12px;text-align: center;">Thank you for being with us. Stay connected with <b>mabiyshop.com</b> </p>
+                <p style="text-align: center;"><img src="data:image/png;base64, {{DNS1D::getBarcodePNG('MS'.date("y", strtotime($order->created_at)).$order->id, 'C39',5,10) }}" alt=""  width="150px" height="30px"></p>
+            </tbody>
+        </table>
     </body>
     <script>
         window.onload = function () {

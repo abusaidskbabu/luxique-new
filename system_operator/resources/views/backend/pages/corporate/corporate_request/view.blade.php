@@ -20,7 +20,7 @@
                         <hr>
                     </div>
                     <div class="col-12 col-lg-3 col-md-3">
-                        <p><strong>Request ID: </strong> KBC{{ date('y', strtotime($request->created_at)) }}{{ $request->id }}</p>
+                        <p><strong>Request ID: </strong> MSC{{ date('y', strtotime($request->created_at)) }}{{ $request->id }}</p>
                         <p><strong>User: </strong> {{ $request->username->name ?? '' }}</p>
                         <p><strong>Request Date: </strong> {{ $request->created_at->format('d M, Y, g:i a') }}</p>
                         <p><strong>Total Quantity: </strong> {{ $request->qty }}</p>

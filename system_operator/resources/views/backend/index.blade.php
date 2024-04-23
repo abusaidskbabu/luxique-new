@@ -171,7 +171,7 @@
                                     <tr>
                                        
                                        
-                                        <td>#KB{{ date('y',strtotime($order->created_at)) }}{{ $order->id }}</td>
+                                        <td>#MS{{ date('y',strtotime($order->created_at)) }}{{ $order->id }}</td>
                                         @if($order->is_pickpoint == 1)
                                         <td >
                                             {{ optional(App\Models\Pickpoints::find($order->address_id))->title }}

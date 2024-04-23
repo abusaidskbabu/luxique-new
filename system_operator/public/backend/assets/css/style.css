@@ -1812,6 +1812,13 @@ table.dataTable.dtr-inline.collapsed>tbody>tr>th:first-child:before {
     max-width: 840px !important;
 }
 
+.bb-1{
+    border-bottom: 1px solid gray !important;
+}
+.b-0{
+    border: none !important;
+}
+
 
 /* pos css  */
 #order_total_history{

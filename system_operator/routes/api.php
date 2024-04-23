@@ -18,6 +18,7 @@ use App\Http\Controllers;
 
 Route::prefix('v1')->group(function () {
 	Route::get('get/pathao/access/tocken', 'Api\ApiController@getAccessTocken');
+	Route::any('pathao-status-webhook', 'Api\ApiController@PathaoStatusWebhook');
 
     Route::get('sliders', 'Api\ApiController@sliders');
     Route::get('brands', 'Api\ApiController@brands')->middleware('localization');
@@ -233,6 +234,7 @@ Route::prefix('v1')->group(function () {
 
 	//OTP
 	Route::post('generate-otp', 'Api\ApiController@generateOTP');
+	Route::post('generate-otp-for-signup', 'Api\ApiController@generateOTPForSignup');
 	Route::post('otp-login', 'Api\ApiController@otpLogin');
 
 	
@@ -287,6 +289,9 @@ Route::prefix('v1')->group(function () {
 	Route::get('get-career-details/{id}', 'Api\ApiController@getCareerDetails')->middleware('localization');
 	Route::post('apply/for/job', 'Api\ApiController@applyForJob');
 
+	Route::get('get-single-product-offer/{slug}', 'Api\ApiController@getSingleProductOffersDetails');
+	Route::get('get-single-product-shipping/{city_id}/{zone_id}/{product_id}/{qty}', 'Api\ApiController@getSingleProductShippingCost');
+	Route::post('get-single-product-shipping-order', 'Api\ApiController@getSingleProductOffersOrder');
 });
 
 

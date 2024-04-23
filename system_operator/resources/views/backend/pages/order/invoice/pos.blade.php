@@ -25,9 +25,13 @@
                 <table>
                     <tbody><tr style="">
                         <td style="font-size: 8px; text-align: left; width: 100%; border-top: 1px solid white;">
-                            Bill To, {{$order->user->name ?? '' }}<br>
+                            Bill To, {{$order->address->shipping_first_name ?? ''.' '.$order->address->shipping_last_name ?? ''}}<br>
                             {{ $order->user->phone ?? '' }} <br>
-                            {{ $order->address->shipping_address ?? ''}}
+                            @if($order->is_pickpoint == 1)
+                                {{$order->pickpoint_address->title}}, {{$order->pickpoint_address->union->title ?? ''}}, {{$order->pickpoint_address->upazila->title ?? ''}},{{$order->pickpoint_address->district->title ?? ''}},{{$order->pickpoint_address->division->title ?? ''}}
+                            @else
+                                {{ $order->address->shipping_address ?? ''}}
+                            @endif
                             <br>Inv #MS{{ date('Y', strtotime($order->created_at))}}{{$order->id}}
                             <br>Date: {{ date('d-m-Y', strtotime($order->created_at))}}
                         </td>

@@ -233,22 +233,30 @@ class Helper
 	public static function getPriceById($id)
 	{
 		$data = \DB::table('products')
-			->where('id', $id)->where('special_price_start', '<=', Carbon::now())
-			->where('special_price_end', '>=', Carbon::now())
-			->first();
-
+			->where('id', $id)->first();
+		
 		if ($data) {
-			if ($data->special_price) {
-				if ($data->special_price_type == 1) {
-					return $data->special_price;
-				} elseif ($data->special_price_type == 2) {
-					$percent = $data->special_price;
-					$price = $data->price;
-					$discount = $price * ($percent / 100);
-					$calculatedPrice = $price - $discount;
-					return $calculatedPrice;
+			
+			$special_price_start = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_start);
+			$special_price_end = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_end);
+			$currentDate = Carbon::now();
+
+
+			if (($special_price_start <= $currentDate) && ($special_price_end >= $currentDate)) {
+				if ($data->special_price > 0) {
+					if ($data->special_price_type == 1) {
+						return $data->price - $data->special_price;
+					} elseif ($data->special_price_type == 2) {
+						$percent = $data->special_price;
+						$price = $data->price;
+						$discount = $price * ($percent / 100);
+						$calculatedPrice = $price - $discount;
+						return $calculatedPrice;
+					}
+				} else {
+					return $data->price;
 				}
-			} else {
+			}else{
 				return $data->price;
 			}
 		} else {
@@ -258,6 +266,90 @@ class Helper
 			} else {
 				return null;
 			}
+		}
+	}
+
+	public static function getPriceAfterDiscount($id)
+	{
+		$data = \DB::table('products')
+			->where('id', $id)->first();
+
+		if ($data) {
+			$special_price_start = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_start);
+			$special_price_end = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_end);
+			$currentDate = Carbon::now();
+
+			if (($special_price_start <= $currentDate) && ($special_price_end >= $currentDate)) {
+				if ($data->special_price > 0) {
+					if ($data->special_price_type == 1) {
+						return $data->price - $data->special_price;
+					} elseif ($data->special_price_type == 2) {
+						$percent = $data->special_price;
+						$price = $data->price;
+						$discount = $price * ($percent / 100);
+						$calculatedPrice = $price - $discount;
+						return $calculatedPrice;
+					}
+				} else {
+					return $data->price;
+				}
+			}else{
+				return $data->price;
+			}
+		} else {
+			$data = \DB::table('products')->where('id', $id)->first();
+			if ($data) {
+				return $data->price;
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public static function getDiscountAmountById($id){
+		$data = \DB::table('products')
+			->where('id', $id)->first();
+
+		if ($data) {
+			$special_price_start = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_start);
+			$special_price_end = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_end);
+			$currentDate = Carbon::now();
+
+			if (($special_price_start <= $currentDate) && ($special_price_end >= $currentDate)) {
+				if ($data->special_price > 0) {
+					if ($data->special_price_type == 1) {
+						return $data->special_price;
+					} elseif ($data->special_price_type == 2) {
+						$percent = $data->special_price;
+						$price = $data->price;
+						$discount = $price * ($percent / 100);
+						$calculatedPrice = $discount;
+						return $calculatedPrice;
+					}
+				} else {
+					return 0;
+				}
+			}else{
+				return 0;
+			}
+		} else {
+			return 0;
+		}
+	}
+
+	public static function getDiscountByAditionalPrice($discount_type, $discount, $additional_price){
+		if ($discount_type && $discount && $additional_price) {
+			if ($discount_type == 1) {
+				return $additional_price - $discount;
+			}else if($discount_type == 2){
+				$percent = $discount;
+				$price = $additional_price;
+				$discount = $price * ($percent / 100);
+				$calculatedPrice = $price - $discount;
+				return $calculatedPrice;
+			}
+		}else{
+			return $additional_price;
 		}
 	}
 
@@ -275,7 +367,7 @@ class Helper
 		}
 	}
 
-	public function get_attribute_set_details_with_product($attributeSetId, $product_id)
+	public static function get_attribute_set_details_with_product($attributeSetId, $product_id)
 	{
 
 		$html = '';
@@ -482,7 +574,7 @@ class Helper
 			if (Helper::getsettings('sms_gateway_default_sender') == 'musking') {
 				$sender_id = \Helper::getsettings('sms_gateway_musking_sender_id');
 			} else {
-				$sender_id = \Helper::getsettings('sms_gateway_musking_sender_id');
+				$sender_id = \Helper::getsettings('sms_gateway_non_musking_sender_id');
 			} 
 
 
@@ -551,6 +643,136 @@ class Helper
 		}
 	}
 
+	public static function sendSmsNonMusking($mobile, $msg)
+	{
+
+		if (Helper::getsettings('sms_gateway_default_provider') == 'mimsms') {
+			
+			$api_key = \Helper::getsettings('sms_gateway_non_musking_api_key');
+			$sender_id = \Helper::getsettings('sms_gateway_non_musking_sender_id');
+		
+			$url = 'https://esms.mimsms.com/smsapi';
+
+			$data = [
+				'api_key' => $api_key,
+				'type' => 'text',
+				'contacts' => $mobile, //'88017xxxxxxxx',
+				'senderid' => $sender_id,
+				'msg' => $msg
+			];
+
+			$ch = curl_init();
+			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_POST, 1);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+			$response = curl_exec($ch);
+			curl_close($ch);
+			return $response;
+		} elseif (Helper::getsettings('sms_gateway_default_provider') == 'sslwireless') {
+
+			$api_key = \Helper::getsettings('sms_gateway_non_musking_api_key');
+			$sender_id = \Helper::getsettings('sms_gateway_non_musking_sender_id');
+			
+			$params = [
+				"api_token" => $api_key,
+				"sid" =>  $sender_id,
+				"msisdn" => $mobile,
+				"sms" => $msg,
+				"csms_id" => rand(1000, 999999)
+			];
+
+			$url = trim('https://smsplus.sslwireless.com', '/') . "/api/v3/send-sms";
+			$params = json_encode($params);
+
+			$ch = curl_init(); // Initialize cURL
+			curl_setopt($ch, CURLOPT_URL, $url);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Content-Type: application/json',
+				'Content-Length: ' . strlen($params),
+				'accept:application/json'
+			));
+
+			$response = curl_exec($ch);
+
+			curl_close($ch);
+
+			return $response;
+
+		}else if(Helper::getsettings('sms_gateway_default_provider') == 'icombd'){
+
+			$sender_id = \Helper::getsettings('sms_gateway_non_musking_sender_id');
+			
+			if(substr($mobile, 0, 3) == "+88") $mobile = '' . substr($mobile, 3);
+			if(substr($mobile, 0, 2) == "88") $mobile = '' . substr($mobile, 2);
+
+			$curl = curl_init();
+
+			$to = '88'.$mobile;
+			$messageBody = $msg;
+
+			$data =[
+				"username"=> \Helper::getsettings('sms_gateway_username'),
+				"password"=> \Helper::getsettings('sms_gateway_password'),
+				"sender"=>	$sender_id,
+				"message"=> $msg,
+				"to"=>$to
+			];
+
+			curl_setopt_array($curl, array(
+			CURLOPT_URL => "http://api.icombd.com/api/v2/sendsms/plaintext",
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => "",
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 30,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => "POST",
+			CURLOPT_POSTFIELDS => json_encode($data),
+			CURLOPT_HTTPHEADER => array(
+			"Content-Type: application/json",
+			),
+			));
+			$response = curl_exec($curl);
+
+			$err = curl_error($curl);
+			curl_close($curl);
+
+			return $response;
+		}elseif (Helper::getsettings('sms_gateway_default_provider') == 'metrotel') {
+			$api_key = \Helper::getsettings('sms_gateway_musking_api_key');
+			$sender_id = \Helper::getsettings('sms_gateway_musking_sender_id');
+
+			
+			$to = $mobile;
+			$messageBody = $msg;
+
+			//new 
+			$curl = curl_init();
+
+			curl_setopt_array($curl, array(
+			  CURLOPT_URL => 'http://joy.metrotel.com.bd/smspanel/smsapi',
+			  CURLOPT_RETURNTRANSFER => true,
+			  CURLOPT_ENCODING => '',
+			  CURLOPT_MAXREDIRS => 10,
+			  CURLOPT_TIMEOUT => 0,
+			  CURLOPT_FOLLOWLOCATION => true,
+			  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			  CURLOPT_CUSTOMREQUEST => 'POST',
+			  CURLOPT_POSTFIELDS => array('api_key' => $api_key,'type' => 'text','contacts' => $to,'senderid' => $sender_id,'msg' => $messageBody)
+			));
+
+			$response = curl_exec($curl);
+
+			curl_close($curl);
+			return $response;
+		}
+	}
 
 
 	public static function sendEmail($email, $subject, $data, $template = 'default')
@@ -1137,6 +1359,7 @@ class Helper
 			'blog' => 'Blog',
 			'blogcategory' => 'BlogCategory',
 			'flash_deal' => 'FlashDeal',
+			'single_product_offer' => 'SingleProductOffer',
 		];
 		$model = "App\Models\\" . $modelArray[$modelName];
 
@@ -1728,7 +1951,7 @@ if($shipping_cost!= null){
 			if (Product::where('id', $product_id)->where('is_deleted', 1)->exists()) {
 
 				if ($OrderDetails = OrderDetails::where('product_id', $product_id)->first()) {
-					$result['message'] = 'Order ID KB' . $OrderDetails->order_id . ' has found related with this product! You can not delete a product when it has orders!';
+					$result['message'] = 'Order ID MS' . $OrderDetails->order_id . ' has found related with this product! You can not delete a product when it has orders!';
 				} else {
 
 					Product::where('id', $product_id)->where('is_deleted', 1)->delete();
@@ -1755,7 +1978,7 @@ if($shipping_cost!= null){
 					$result['status'] = true;
 					$result['message'] = 'Order has been successfully deleted from your trash!';
 				} else {
-					$result['message'] = 'Order ID KB' . $order_id . ' has not payment status Pending or Canceled! You can delete an order when it has payment status Pending or Canceled!';
+					$result['message'] = 'Order ID MS' . $order_id . ' has not payment status Pending or Canceled! You can delete an order when it has payment status Pending or Canceled!';
 				}
 			} else {
 				$result['message'] = 'Order is not found or not deleted yet!';
@@ -1770,7 +1993,7 @@ if($shipping_cost!= null){
 				$seller_product = Product::where('seller_id', $seller_id)->first();
 
 				if ($seller_order) {
-					$result['message'] = 'Order ID KB' . $seller_order->id . ' is associated with this seller! You can not delete a seller when he has any order!';
+					$result['message'] = 'Order ID MS' . $seller_order->id . ' is associated with this seller! You can not delete a seller when he has any order!';
 				} elseif ($seller_product) {
 					$result['message'] = 'Product ID ' . $seller_product->id . ' is associated with this seller! You can not delete a seller when he has any product!';
 				} else {
@@ -1803,7 +2026,7 @@ if($shipping_cost!= null){
 				$order = Order::where('user_id', $user_id)->first();
 
 				if ($order) {
-					$result['message'] = 'Order ID KB' . $order->id . ' is associated with this customer! You can not delete a customer when he has any order!';
+					$result['message'] = 'Order ID MS' . $order->id . ' is associated with this customer! You can not delete a customer when he has any order!';
 				} else {
 					User::where('id', $user_id)->where('is_deleted', 1)->delete();
 					\Helper::deleteFile($user->avatar, 'uploads/images/users/');
