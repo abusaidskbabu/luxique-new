@@ -6,7 +6,8 @@ import axios from 'axios';
 Vue.use(Vuex);
 
 //  var base_url = 'http://127.0.0.1:8000';
- var base_url = 'https://api.new.luxique.com.bd';
+//  var base_url = 'https://api.new.luxique.com.bd';
+ var base_url = 'https://api.luxique.com.bd';
  
 
 export default new Store({

@@ -45,11 +45,11 @@ class LoginController extends Controller
 	{
 
 
-		if ($request->server('HTTP_HOST') == 'api.new.luxique.com.bd' || $request->server('HTTP_HOST') == 'api.new.luxique.com.bd') {
+		if ($request->server('HTTP_HOST') == 'api.luxique.com.bd' || $request->server('HTTP_HOST') == 'api.new.luxique.com.bd' || $request->server('HTTP_HOST') == 'api.new.luxique.com.bd') {
 			echo json_encode('Sorry please provide valid api url!');
-		} elseif ($request->server('HTTP_HOST') == 'seller.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8001') {
+		} elseif ($request->server('HTTP_HOST') == 'seller.luxique.com.bd' || $request->server('HTTP_HOST') == 'seller.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8001') {
 			return view('auth.admin.login');
-		} elseif ($request->server('HTTP_HOST') == 'admin.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8000') {
+		} elseif ($request->server('HTTP_HOST') == 'admin.luxique.com.bd' || $request->server('HTTP_HOST') == 'admin.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8000') {
 			return view('auth.admin.login');
 		} else {
 			echo json_encode('Sorry you are not allowed to access this url!');
@@ -62,7 +62,7 @@ class LoginController extends Controller
 	public function login(Request $request)
 	{
 
-		if ($request->server('HTTP_HOST') == 'seller.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8001' ) {
+		if ($request->server('HTTP_HOST') == 'seller.luxique.com.bd' || $request->server('HTTP_HOST') == 'seller.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8001' ) {
 			$this->validate($request, [
 				'email' => 'required',
 				'password' => 'required'
@@ -106,7 +106,7 @@ class LoginController extends Controller
 				session()->flash('failed', 'Invalid Credentials!');
 				return back();
 			}
-		} elseif ($request->server('HTTP_HOST') == 'admin.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8000') {
+		} elseif ($request->server('HTTP_HOST') == 'admin.luxique.com.bd' || $request->server('HTTP_HOST') == 'admin.new.luxique.com.bd' || $request->server('HTTP_HOST') == '127.0.0.1:8000') {
 			$this->validate($request, [
 				'email' => 'required',
 				'password' => 'required'

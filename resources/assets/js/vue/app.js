@@ -30,9 +30,13 @@ Vue.filter('prefix_year', function(value) {
 });
 
 
-Vue.prototype.$frontendUrl = 'https://new.luxique.com.bd';
-Vue.prototype.$baseUrl = 'https://api.new.luxique.com.bd';
-Vue.prototype.$thumbnailUrl = 'https:/api.new.luxique.com.bd/media/thumbnail';
+Vue.prototype.$frontendUrl = 'https://luxique.com.bd';
+Vue.prototype.$baseUrl = 'https://api.luxique.com.bd';
+Vue.prototype.$thumbnailUrl = 'https:/api.luxique.com.bd/media/thumbnail';
+
+// Vue.prototype.$frontendUrl = 'https://new.luxique.com.bd';
+// Vue.prototype.$baseUrl = 'https://api.new.luxique.com.bd';
+// Vue.prototype.$thumbnailUrl = 'https:/api.new.luxique.com.bd/media/thumbnail';
 
 // Vue.prototype.$frontendUrl = 'http://127.0.0.1:8003';
 // Vue.prototype.$baseUrl = 'http://127.0.0.1:8000'; 
