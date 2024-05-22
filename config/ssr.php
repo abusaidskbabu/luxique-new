@@ -32,7 +32,7 @@ return [
      */
     'node' => [
         'node_path' => env('NODE_PATH', '/home/luxiquec/nodevenv/nodejs/12/bin/node'),
-        // 'node_path' => env('NODE_PATH','C:\xampp\nodejs\node.exe'),
+        // 'node_path' => env('NODE_PATH', '"C:/Program Files/nodejs/node.exe"'),
         'temp_path' => storage_path('app/ssr'),
     ],
 

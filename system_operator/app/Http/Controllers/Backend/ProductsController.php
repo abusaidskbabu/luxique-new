@@ -1271,6 +1271,10 @@ class ProductsController extends Controller
                 if (Auth::user()->can('product.edit')) {
                     $btn = $btn . '<a title="Edit Product" class="icon_btn text-success text-decoration-none" href="' . route('admin.product.edit', $row->id) . '"><i class="mdi mdi-pencil-box-outline"></i></a>';
                 }
+                
+                if (Auth::user()->can('product.edit')) {
+                    $btn = $btn . '<a target="_blank" title="Edit Product" class="icon_btn text-success text-decoration-none" href="' . route('admin.product.barcode', $row->id) . '"><i class="mdi mdi-barcode"></i></a>';
+                }
 
                 if (Auth::user()->can('product.delete')) {
                     $btn = $btn . '<a title="Delete Product" class="icon_btn text-danger delete_btn text-decoration-none" data-url="' . route('admin.product.delete', $row->id) . '" data-toggle="modal" data-target="#deleteModal" href="#"><i class="mdi mdi-delete"></i></a>';
@@ -1303,6 +1307,11 @@ class ProductsController extends Controller
 
             return view('backend.pages.product.parts.include.product-table')->with('products', $product);
         }
+    }
+    
+    public function barcode($id){
+        $product = Product::find($id);
+        return view('backend.pages.product.barcode', compact('product'));
     }
 
     public function changePaymentStatus(Request $request)
