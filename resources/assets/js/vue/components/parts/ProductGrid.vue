@@ -6,7 +6,7 @@
             </div>
             <div v-if="data.shop_verified.if_veryfied" class="product_badge_flagship">
             <span> <img :src="baseurl+'/'+data.shop_verified.veryfied_banner" alt="Flagship"> </span></div>
-            <router-link :to="{ name: 'product', params: {slug: data.slug } }"><img property="schema:image" @error="imageLoadError" :src="thumbnailUrl+'/'+data.default_image" alt=""></router-link>
+            <router-link :to="{ name: 'product', params: {slug: data.slug } }"><img property="schema:image" :src="thumbnailUrl+'/'+data.default_image" alt=""></router-link>
         </div>
         <div class="product-details">
                 <div v-if="parseInt(data.price_after_offer.replace(/,/g, '')) == parseInt(data.price.replace(/,/g, ''))" class="offer_gap"></div>
