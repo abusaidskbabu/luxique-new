@@ -10,7 +10,7 @@
         </span>
       </div>
       <router-link :to="{ name: 'product', params: { slug: data.slug } }">
-        <img :src="`${thumbnailUrl}/${data.default_image}`" @error="imageLoadError" alt="">
+        <img :src="`${baseurl}/${data.default_image}`" alt="">
       </router-link>
     </div>
     <div class="product-details">
@@ -107,9 +107,9 @@ export default {
     }
   },
   methods: {
-    imageLoadError(event) {
-      event.target.src = '/images/notfound.png';
-    },
+    // imageLoadError(event) {
+    //   event.target.src = '/images/notfound.png';
+    // },
     addToCompare(product_id) {
       const session_key = localStorage.getItem('session_key');
       const token = localStorage.getItem('token');
