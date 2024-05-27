@@ -4,7 +4,8 @@
             <div class="product_badge" v-if="data.offer_percentage > 0">
             <span>-{{data.offer_percentage}}%</span>
             </div>
-            <div v-if="data.shop_verified.if_veryfied" class="product_badge_flagship"><span> <img :src="baseurl+'/'+data.shop_verified.veryfied_banner" alt="Flagship"> </span></div>
+            <div v-if="data.shop_verified.if_veryfied" class="product_badge_flagship">
+            <span> <img :src="baseurl+'/'+data.shop_verified.veryfied_banner" alt="Flagship"> </span></div>
             <router-link :to="{ name: 'product', params: {slug: data.slug } }"><img property="schema:image" @error="imageLoadError" :src="thumbnailUrl+'/'+data.default_image" alt=""></router-link>
         </div>
         <div class="product-details">
