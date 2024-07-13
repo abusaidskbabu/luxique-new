@@ -232,42 +232,49 @@ class Helper
 
 	public static function getPriceById($id)
 	{
-		$data = \DB::table('products')
-			->where('id', $id)->first();
-		
-		if ($data) {
-			
-			$special_price_start = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_start);
-			$special_price_end = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_end);
-			$currentDate = Carbon::now();
+		try {
+			$data = \DB::table('products')->where('id', $id)->first();
 
+			if ($data) {
+				$currentDate = Carbon::now();
+				
+				// Check if special price start and end dates are not null
+				if ($data->special_price_start && $data->special_price_end) {
+					$special_price_start = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_start);
+					$special_price_end = Carbon::createFromFormat('Y-m-d H:i:s', $data->special_price_end);
 
-			if (($special_price_start <= $currentDate) && ($special_price_end >= $currentDate)) {
-				if ($data->special_price > 0) {
-					if ($data->special_price_type == 1) {
-						return $data->price - $data->special_price;
-					} elseif ($data->special_price_type == 2) {
-						$percent = $data->special_price;
-						$price = $data->price;
-						$discount = $price * ($percent / 100);
-						$calculatedPrice = $price - $discount;
-						return $calculatedPrice;
+					if (($special_price_start <= $currentDate) && ($special_price_end >= $currentDate)) {
+						if ($data->special_price > 0) {
+							if ($data->special_price_type == 1) {
+								return $data->price - $data->special_price;
+							} elseif ($data->special_price_type == 2) {
+								$percent = $data->special_price;
+								$price = $data->price;
+								$discount = $price * ($percent / 100);
+								$calculatedPrice = $price - $discount;
+								return $calculatedPrice;
+							}
+						} else {
+							return $data->price;
+						}
+					} else {
+						return $data->price;
 					}
 				} else {
 					return $data->price;
 				}
-			}else{
-				return $data->price;
-			}
-		} else {
-			$data = \DB::table('products')->where('id', $id)->first();
-			if ($data) {
-				return $data->price;
 			} else {
-				return null;
+				return null; // No data found for the given ID
 			}
+		} catch (\Exception $e) {
+			// Log the error message
+			\Log::error('Error in getPriceById: ' . $e->getMessage());
+
+			// Return null or a default value in case of an error
+			return null;
 		}
 	}
+
 
 	public static function getPriceAfterDiscount($id)
 	{
