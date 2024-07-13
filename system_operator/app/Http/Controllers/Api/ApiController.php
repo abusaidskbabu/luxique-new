@@ -5342,172 +5342,398 @@ class ApiController extends Controller
 		}
 	}
 
-	public function getSearchProduct(Request $request){
+	// public function getSearchProduct(Request $request){
 	
-		$location = $request->upazila_id == "null" ? 0 : (int)$request->upazila_id;
-		$query =  product::where('is_active', 1)->where('is_deleted', 0)
-			->with('meta')
-			->with('specification')
-			->where('product_qc', 1);
-		$content = $request->content ?? null;
-		$productspage = $request->productspage ?? null;
-		if ($request->brands) {
-			$x = explode(',', $request->brands);
-			$brands = [];
-			foreach ($x as $key => $value) {
-				$brands[] = (int)$value;
+	// 	$location = $request->upazila_id == "null" ? 0 : (int)$request->upazila_id;
+	// 	$query =  product::where('is_active', 1)->where('is_deleted', 0)
+	// 		->with('meta')
+	// 		->with('specification')
+	// 		->where('product_qc', 1);
+	// 	$content = $request->content ?? null;
+	// 	$productspage = $request->productspage ?? null;
+	// 	if ($request->brands) {
+	// 		$x = explode(',', $request->brands);
+	// 		$brands = [];
+	// 		foreach ($x as $key => $value) {
+	// 			$brands[] = (int)$value;
+	// 		}
+	// 	} else {
+	// 		$brands = null;
+	// 	}
+
+	// 	if ($content) {
+	// 		if (product::where('title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
+	// 			$query->where('title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	// 		} elseif (product::where('category_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
+	// 			$query->where('category_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	// 		} elseif (product::where('brand_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
+	// 			$query->where('brand_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	// 		} elseif (product::where('sku', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
+	// 			$query->where('sku', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	// 		} elseif (product::where('short_description', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
+	// 			$query->where('short_description', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	// 		} elseif (product::where('product_type', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
+	// 			$query->where('product_type', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	// 		}
+	// 	}
+
+
+
+
+	// 	//IF it from category
+	// 	if ($request->slug && $request->slug != "null") {
+	// 		$cat = DB::table('categories')->where('slug', $request->slug)->first();
+	// 		if ($cat) {
+	// 			$categories = "$cat->id";
+	// 		} else {
+	// 			$categories = null;
+	// 		}
+	// 	} else {
+	// 		$categories = $request->categories;
+	// 	}
+
+
+	// 	if ($request->brands) {
+	// 		$query->whereIn('brand_id', $brands);
+	// 	}
+
+
+	// 	$categories_ids = [];
+	// 	if ($categories) {
+	// 		foreach (explode(',', $categories) as $category_id) {
+	// 			$category = Category::select('id', 'show_child_products')->where('id', $category_id)->first();
+	// 			if ($category) {
+	// 				$categories_ids[] = $category->id;
+	// 				if ($category->show_child_products == 1) {
+	// 					$catLevel1 = Category::select('id', 'show_child_products')->where('parent_id', $category->id)->get();
+
+	// 					if ($catLevel1) {
+	// 						foreach ($catLevel1 as $cat1) {
+	// 							$categories_ids[] = $cat1->id;
+
+	// 							if ($cat1->show_child_products == 1) {
+	// 								$catLevel2 = Category::select('id', 'show_child_products')->where('parent_id', $cat1->id)->get();
+	// 								if ($catLevel2) {
+
+	// 									foreach ($catLevel2 as $cat2) {
+	// 										$categories_ids[] = $cat2->id;
+
+
+	// 										if ($cat2->show_child_products == 1) {
+	// 											$catLevel3 = Category::select('id', 'show_child_products')->where('parent_id', $cat2->id)->get();
+	// 											if ($catLevel3) {
+	// 												foreach ($catLevel3 as $cat3) {
+	// 													$categories_ids[] = $cat3->id;
+	// 												}
+	// 											}
+	// 										}
+	// 									}
+	// 								}
+	// 							}
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 		$subquery = "";
+	// 		if ($categories_ids) {
+	// 			$count = 1;
+	// 			foreach ($categories_ids as $catId) {
+	// 				if($count == 1){
+	// 					$subquery .= 'FIND_IN_SET(' . $catId . ',category_id)';
+	// 				}else{
+	// 					$subquery .= ' OR FIND_IN_SET(' . $catId . ',category_id)';
+	// 				}
+	// 				$count++;
+	// 			}
+	// 		}
+	// 		$query->whereRaw('(' . $subquery . ')');
+			
+	// 	}
+
+
+	// 	$query->whereRaw("(FIND_IN_SET(0, delivery_location) OR FIND_IN_SET($location, delivery_location))");
+	// 	if ($request->orederbyselect && $request->orederbyselect != 'undefined') {
+	// 		if ($request->orederbyselect == 'lowtohigh') {
+	// 			$query->orderBy('price', 'ASC');
+	// 		}
+	// 		if ($request->orederbyselect == 'hightolow') {
+	// 			$query->orderBy('price', 'DESC');
+	// 		}
+	// 		if ($request->orederbyselect == 'atoz') {
+	// 			$query->orderBy('title', 'ASC');
+	// 		}
+	// 		if ($request->orederbyselect == 'ztoa') {
+	// 			$query->orderBy('title', 'DESC');
+	// 		}
+	// 	} else {
+	// 		$query->orderBy('shuffle_number', 'DESC');
+	// 	}
+
+
+
+
+	// 	if (($request->minprice && $request->minprice != 'undefined') && ($request->maxprice  && $request->maxprice != 'undefined')) {
+	// 		$query->where('price', '>=', $request->minprice)->where('price', '<=', $request->maxprice);
+	// 	}
+
+	// 	if ($request->minprice && $request->minprice != 'undefined') {
+	// 		$query->where('price', '>=', $request->minprice);
+	// 	}
+	// 	if ($request->maxprice && $request->maxprice != 'undefined') {
+	// 		$query->where('price', '<=', $request->maxprice);
+	// 	}
+	// 	if($request->shop_slug) {
+	// 		$seller = DB::table('shop_info')->where('slug', $request->shop_slug)->first();
+	// 		$query->where('seller_id', $seller->seller_id);
+	// 		$search_by['shop_slug'] = $request->shop_slug.' ======= seller id:'.$seller->seller_id;
+	// 	}
+
+	// 	$search_by['slug'] = $request->slug;
+	// 	$search_by['productspage'] = $productspage;
+	// 	$search_by['by_content'] = $content;
+	// 	$search_by['by_categories'] = $categories_ids;
+	// 	$search_by['by_brans'] = $brands;
+	// 	$search_by['by_orderBy'] = $request->orederbyselect;
+	// 	$search_by['minprice'] = $request->minprice;
+	// 	$search_by['maxprice'] = $request->maxprice;
+
+	// 	$products = $query->paginate(16);
+
+
+	// 	if ($request->productspage == 1) {
+	// 		if ($request->brands == null && $request->categories == null && $content == "undefined" && $request->orederbyselect == "undefined" && $request->minprice == "undefined" && $request->maxprice == "undefined") {
+	// 			$products = product::where('is_active', 1)->where('is_deleted', 0)->whereRaw("(FIND_IN_SET(0, delivery_location) OR FIND_IN_SET($location, delivery_location))")->where('product_qc', 1)->orderBy('shuffle_number', 'DESC')->paginate(12);
+	// 		}
+	// 	}
+	// 	foreach ($products as $product) {
+	// 		$product->price_after_offer = number_format((int)\Helper::price_after_offer($product->id), 0);
+	// 		$product->price = number_format((int)$product->price, 0);
+	// 		$product->offer_percentage = number_format((int)\Helper::offer_percentage_byID($product->id), 0);
+	// 		$product->shop_verified = \Helper::biponi_varyfication($product->seller_id);
+	// 		$product->AllRating = $this->AllRating($product->id) ? $this->AllRating($product->id)->original : null;
+	// 		$product->search_by = $search_by;
+
+
+	// 		if($product->meta) {
+	// 			foreach ($product->meta as $meta) {
+	// 				if ($meta->meta_key == 'custom_options' || $meta->meta_key == 'tab_option') {
+	// 					$meta->meta_value = unserialize($meta->meta_value);
+	// 					if ($meta->meta_key == 'custom_options') {
+	// 						$quantities = [];
+	// 						$specificStock = [];
+	// 						$option_wise_stock = [];
+
+	// 						foreach ($meta->meta_value as $single_op) {
+	// 							foreach ($single_op['value'] as $item) {
+	// 								$quantities[] = $item;
+
+	// 								if ($item['qty']) {
+	// 									$specificStock[$single_op['title']][] = (int) $item['qty'];
+	// 								} else {
+	// 									$specificStock[$single_op['title']][] = 0;
+	// 								}
+	// 							}
+	// 						}
+	// 						foreach ($specificStock as $key => $val) {
+	// 							if (max($val) > 0) {
+	// 								$option_wise_stock[$key] = true;
+	// 							} else {
+	// 								$option_wise_stock[$key] = false;
+	// 							}
+	// 						}
+
+	// 						$product->hidden_option = $option_wise_stock;
+
+	// 						$total_qty = [];
+	// 						foreach ($quantities as $single_variant) {
+	// 							$total_qty[] = $single_variant['qty'];
+	// 						}
+
+
+	// 						if (count(array_filter($total_qty)) == 0) {
+	// 							$product->calculated_in_stock = false;
+	// 						} else {
+	// 							$product->calculated_in_stock = true;
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 		//Localization
+	// 		$lang = app()->getLocale();
+	// 		if ($lang != 'en') {
+	// 			$langData = ProductLocalization::where('product_id', $product->id)->where('is_active', 1)->where('lang_code', $lang)->first();
+	// 			if ($langData) {
+	// 				$product->title = $langData->title ? $langData->title : $product->title;
+	// 			}
+	// 		}
+
+
+	// 	}
+
+	// 	foreach($products as $item){
+	// 		$pro =  Product::where('id', $item->id)->first();
+	// 		$item->default_image2 = $pro;
+	// 	}
+
+	// 	if (count($products) > 0) {
+	// 		$data['status'] = 1;
+	// 		$data['products'] = $products;
+	// 		$data['search_by'] = $search_by;
+	// 		return response()->json($data, 200);
+
+	// 	} else {
+	// 		$data['status'] = 0;
+	// 		$data['products'] = $products;
+	// 		$data['message'] = 'Product not found .';
+	// 		$data['search_by'] = $search_by;
+	// 		return response()->json($data, 200);
+	// 	}
+	// }
+
+	// search function midify 
+	public function getSearchProduct(Request $request) {
+		try {
+			$location = $request->upazila_id == "null" ? 0 : (int)$request->upazila_id;
+			$query = product::where('is_active', 1)
+				->where('is_deleted', 0)
+				->with(['meta', 'specification'])
+				->where('product_qc', 1);
+			
+			$content = $request->content ?? null;
+			$productspage = $request->productspage ?? null;
+	
+			$brands = $request->brands ? array_map('intval', explode(',', $request->brands)) : null;
+	
+			if ($content) {
+				$searchableFields = ['title', 'category_title', 'brand_title', 'sku', 'short_description', 'product_type'];
+				foreach ($searchableFields as $field) {
+					if (product::where($field, 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->exists()) {
+						$query->where($field, 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+						break;
+					}
+				}
 			}
-		} else {
-			$brands = null;
-		}
-
-		if ($content) {
-			if (product::where('title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
-				$query->where('title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
-			} elseif (product::where('category_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
-				$query->where('category_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
-			} elseif (product::where('brand_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
-				$query->where('brand_title', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
-			} elseif (product::where('sku', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
-				$query->where('sku', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
-			} elseif (product::where('short_description', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
-				$query->where('short_description', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
-			} elseif (product::where('product_type', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0)->count() > 0) {
-				$query->where('product_type', 'LIKE', "%$content%")->where('is_active', 1)->where('is_deleted', 0);
+	
+			$categories = $this->getCategories($request);
+	
+			if ($brands) {
+				$query->whereIn('brand_id', $brands);
 			}
+	
+			if ($categories) {
+				$categories_ids = $this->getCategoryIds($categories);
+				if ($categories_ids) {
+					$subquery = implode(' OR ', array_map(fn($id) => "FIND_IN_SET($id,category_id)", $categories_ids));
+					$query->whereRaw("($subquery)");
+				}
+			}
+	
+			$query->whereRaw("(FIND_IN_SET(0, delivery_location) OR FIND_IN_SET($location, delivery_location))");
+	
+			$this->applyOrdering($query, $request->orederbyselect);
+			$this->applyPriceFilters($query, $request->minprice, $request->maxprice);
+	
+			if ($request->shop_slug) {
+				$seller = DB::table('shop_info')->where('slug', $request->shop_slug)->first();
+				if ($seller) {
+					$query->where('seller_id', $seller->seller_id);
+					$search_by['shop_slug'] = $request->shop_slug . ' ======= seller id:' . $seller->seller_id;
+				}
+			}
+	
+			$search_by = $this->getSearchByData($request, $categories_ids ?? [], $brands);
+	
+			$products = $query->paginate(16);
+	
+			$this->enhanceProducts($products, $search_by);
+	
+			return response()->json([
+				'status' => $products->count() > 0 ? 1 : 0,
+				'products' => $products,
+				'search_by' => $search_by,
+				'message' => $products->count() > 0 ? null : 'Product not found.'
+			], 200);
+	
+		} catch (\Exception $e) {
+			return response()->json(['status' => 0, 'message' => 'An error occurred.'], 500);
 		}
-
-
-
-
-		//IF it from category
+	}
+	
+	private function getCategories(Request $request) {
 		if ($request->slug && $request->slug != "null") {
 			$cat = DB::table('categories')->where('slug', $request->slug)->first();
-			if ($cat) {
-				$categories = "$cat->id";
-			} else {
-				$categories = null;
-			}
-		} else {
-			$categories = $request->categories;
+			return $cat ? "$cat->id" : null;
 		}
-
-
-		if ($request->brands) {
-			$query->whereIn('brand_id', $brands);
-		}
-
-
-
-
+		return $request->categories;
+	}
+	
+	private function getCategoryIds($categories) {
 		$categories_ids = [];
-		if ($categories) {
-			foreach (explode(',', $categories) as $category_id) {
-				$category = Category::select('id', 'show_child_products')->where('id', $category_id)->first();
-				if ($category) {
-					$categories_ids[] = $category->id;
-					if ($category->show_child_products == 1) {
-						$catLevel1 = Category::select('id', 'show_child_products')->where('parent_id', $category->id)->get();
-
-						if ($catLevel1) {
-							foreach ($catLevel1 as $cat1) {
-								$categories_ids[] = $cat1->id;
-
-								if ($cat1->show_child_products == 1) {
-									$catLevel2 = Category::select('id', 'show_child_products')->where('parent_id', $cat1->id)->get();
-									if ($catLevel2) {
-
-										foreach ($catLevel2 as $cat2) {
-											$categories_ids[] = $cat2->id;
-
-
-											if ($cat2->show_child_products == 1) {
-												$catLevel3 = Category::select('id', 'show_child_products')->where('parent_id', $cat2->id)->get();
-												if ($catLevel3) {
-													foreach ($catLevel3 as $cat3) {
-														$categories_ids[] = $cat3->id;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			$subquery = "";
-			if ($categories_ids) {
-				$count = 1;
-				foreach ($categories_ids as $catId) {
-					if($count == 1){
-						$subquery .= 'FIND_IN_SET(' . $catId . ',category_id)';
-					}else{
-						$subquery .= ' OR FIND_IN_SET(' . $catId . ',category_id)';
-					}
-					$count++;
-				}
-			}
-			$query->whereRaw('(' . $subquery . ')');
-			
+		foreach (explode(',', $categories) as $category_id) {
+			$this->getCategoryChildIds($category_id, $categories_ids);
 		}
-
-
-		$query->whereRaw("(FIND_IN_SET(0, delivery_location) OR FIND_IN_SET($location, delivery_location))");
-		if ($request->orederbyselect && $request->orederbyselect != 'undefined') {
-			if ($request->orederbyselect == 'lowtohigh') {
-				$query->orderBy('price', 'ASC');
+		return $categories_ids;
+	}
+	
+	private function getCategoryChildIds($category_id, &$categories_ids) {
+		$category = Category::select('id', 'show_child_products')->where('id', $category_id)->first();
+		if ($category) {
+			$categories_ids[] = $category->id;
+			if ($category->show_child_products == 1) {
+				$children = Category::select('id', 'show_child_products')->where('parent_id', $category->id)->get();
+				foreach ($children as $child) {
+					$this->getCategoryChildIds($child->id, $categories_ids);
+				}
 			}
-			if ($request->orederbyselect == 'hightolow') {
-				$query->orderBy('price', 'DESC');
-			}
-			if ($request->orederbyselect == 'atoz') {
-				$query->orderBy('title', 'ASC');
-			}
-			if ($request->orederbyselect == 'ztoa') {
-				$query->orderBy('title', 'DESC');
+		}
+	}
+	
+	private function applyOrdering($query, $orderBy) {
+		if ($orderBy && $orderBy != 'undefined') {
+			switch ($orderBy) {
+				case 'lowtohigh':
+					$query->orderBy('price', 'ASC');
+					break;
+				case 'hightolow':
+					$query->orderBy('price', 'DESC');
+					break;
+				case 'atoz':
+					$query->orderBy('title', 'ASC');
+					break;
+				case 'ztoa':
+					$query->orderBy('title', 'DESC');
+					break;
 			}
 		} else {
 			$query->orderBy('shuffle_number', 'DESC');
 		}
-
-
-
-
-		if (($request->minprice && $request->minprice != 'undefined') && ($request->maxprice  && $request->maxprice != 'undefined')) {
-			$query->where('price', '>=', $request->minprice)->where('price', '<=', $request->maxprice);
+	}
+	
+	private function applyPriceFilters($query, $minPrice, $maxPrice) {
+		if ($minPrice && $minPrice != 'undefined') {
+			$query->where('price', '>=', $minPrice);
 		}
-
-		if ($request->minprice && $request->minprice != 'undefined') {
-			$query->where('price', '>=', $request->minprice);
+		if ($maxPrice && $maxPrice != 'undefined') {
+			$query->where('price', '<=', $maxPrice);
 		}
-		if ($request->maxprice && $request->maxprice != 'undefined') {
-			$query->where('price', '<=', $request->maxprice);
-		}
-		if($request->shop_slug) {
-			$seller = DB::table('shop_info')->where('slug', $request->shop_slug)->first();
-			$query->where('seller_id', $seller->seller_id);
-			$search_by['shop_slug'] = $request->shop_slug.' ======= seller id:'.$seller->seller_id;
-		}
-
-		$search_by['slug'] = $request->slug;
-		$search_by['productspage'] = $productspage;
-		$search_by['by_content'] = $content;
-		$search_by['by_categories'] = $categories_ids;
-		$search_by['by_brans'] = $brands;
-		$search_by['by_orderBy'] = $request->orederbyselect;
-		$search_by['minprice'] = $request->minprice;
-		$search_by['maxprice'] = $request->maxprice;
-
-		$products = $query->paginate(16);
-
-
-		if ($request->productspage == 1) {
-			if ($request->brands == null && $request->categories == null && $content == "undefined" && $request->orederbyselect == "undefined" && $request->minprice == "undefined" && $request->maxprice == "undefined") {
-				$products = product::where('is_active', 1)->where('is_deleted', 0)->whereRaw("(FIND_IN_SET(0, delivery_location) OR FIND_IN_SET($location, delivery_location))")->where('product_qc', 1)->orderBy('shuffle_number', 'DESC')->paginate(12);
-			}
-		}
+	}
+	
+	private function getSearchByData($request, $categories_ids, $brands) {
+		return [
+			'slug' => $request->slug,
+			'productspage' => $request->productspage,
+			'by_content' => $request->content,
+			'by_categories' => $categories_ids,
+			'by_brands' => $brands,
+			'by_orderBy' => $request->orederbyselect,
+			'minprice' => $request->minprice,
+			'maxprice' => $request->maxprice,
+		];
+	}
+	
+	private function enhanceProducts(&$products, $search_by) {
 		foreach ($products as $product) {
 			$product->price_after_offer = number_format((int)\Helper::price_after_offer($product->id), 0);
 			$product->price = number_format((int)$product->price, 0);
@@ -5515,86 +5741,57 @@ class ApiController extends Controller
 			$product->shop_verified = \Helper::biponi_varyfication($product->seller_id);
 			$product->AllRating = $this->AllRating($product->id) ? $this->AllRating($product->id)->original : null;
 			$product->search_by = $search_by;
-
-
-			if($product->meta) {
+	
+			if ($product->meta) {
 				foreach ($product->meta as $meta) {
-					if ($meta->meta_key == 'custom_options' || $meta->meta_key == 'tab_option') {
+					if (in_array($meta->meta_key, ['custom_options', 'tab_option'])) {
 						$meta->meta_value = unserialize($meta->meta_value);
 						if ($meta->meta_key == 'custom_options') {
-							$quantities = [];
-							$specificStock = [];
-							$option_wise_stock = [];
-
-							foreach ($meta->meta_value as $single_op) {
-								foreach ($single_op['value'] as $item) {
-									$quantities[] = $item;
-
-									if ($item['qty']) {
-										$specificStock[$single_op['title']][] = (int) $item['qty'];
-									} else {
-										$specificStock[$single_op['title']][] = 0;
-									}
-								}
-							}
-							foreach ($specificStock as $key => $val) {
-								if (max($val) > 0) {
-									$option_wise_stock[$key] = true;
-								} else {
-									$option_wise_stock[$key] = false;
-								}
-							}
-
-							$product->hidden_option = $option_wise_stock;
-
-							$total_qty = [];
-							foreach ($quantities as $single_variant) {
-								$total_qty[] = $single_variant['qty'];
-							}
-
-
-							if (count(array_filter($total_qty)) == 0) {
-								$product->calculated_in_stock = false;
-							} else {
-								$product->calculated_in_stock = true;
-							}
+							$this->handleCustomOptions($product, $meta);
 						}
 					}
 				}
 			}
-			//Localization
+	
+			// Localization
 			$lang = app()->getLocale();
 			if ($lang != 'en') {
 				$langData = ProductLocalization::where('product_id', $product->id)->where('is_active', 1)->where('lang_code', $lang)->first();
 				if ($langData) {
-					$product->title = $langData->title ? $langData->title : $product->title;
+					$product->title = $langData->title ?? $product->title;
 				}
 			}
-
-
-		}
-
-		foreach($products as $item){
-			$pro =  Product::where('id', $item->id)->first();
-			$item->default_image2 = $pro;
-		}
-
-		if (count($products) > 0) {
-			$data['status'] = 1;
-			$data['products'] = $products;
-			$data['search_by'] = $search_by;
-			return response()->json($data, 200);
-
-		} else {
-			$data['status'] = 0;
-			$data['products'] = $products;
-			$data['message'] = 'Product not found .';
-			$data['search_by'] = $search_by;
-			return response()->json($data, 200);
+	
+			$pro = Product::where('id', $product->id)->first();
+			$product->default_image2 = $pro;
 		}
 	}
-
-
+	
+	private function handleCustomOptions(&$product, $meta) {
+		$quantities = [];
+		$specificStock = [];
+		$option_wise_stock = [];
+	
+		foreach ($meta->meta_value as $single_op) {
+			foreach ($single_op['value'] as $item) {
+				$quantities[] = $item;
+	
+				if ($item['qty']) {
+					$specificStock[$single_op['title']][] = (int)$item['qty'];
+				} else {
+					$specificStock[$single_op['title']][] = 0;
+				}
+			}
+		}
+	
+		foreach ($specificStock as $key => $val) {
+			$option_wise_stock[$key] = max($val) > 0;
+		}
+	
+		$product->hidden_option = $option_wise_stock;
+		$total_qty = array_column($quantities, 'qty');
+		$product->calculated_in_stock = count(array_filter($total_qty)) > 0;
+	}
 
 
 
